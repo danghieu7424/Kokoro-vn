@@ -161,9 +161,12 @@ pub fn normalize(text: &str) -> String {
         let y_spaced = y.chars().map(|c| c.to_string()).collect::<Vec<String>>().join(" ");
         format!("{} tháng {} năm {}", d, m, y_spaced)
     }).into_owned();
-    t = Regex::new(r"\b(\d{1,2}):(\d{2}):(\d{2})\b").unwrap().replace_all(&t, "$1 giờ $2 phút $3 giây").into_owned();
+    t = Regex::new(r"\b(\d{1,2}):(\d{2}):(\d{2})\b").unwrap().replace_all(&t, |caps: &Captures| {
+        let h = caps[1].parse::<u32>().unwrap_or(0);
+        format!("{} giờ {} phút {} giây", h, &caps[2], &caps[3])
+    }).into_owned();
     t = Regex::new(r"\b(\d{1,2}):(\d{2})\b").unwrap().replace_all(&t, |caps: &Captures| {
-        let h = &caps[1];
+        let h = caps[1].parse::<u32>().unwrap_or(0);
         let m = &caps[2];
         if m == "00" { format!("{} giờ", h) } else { format!("{} giờ {}", h, m) }
     }).into_owned();
