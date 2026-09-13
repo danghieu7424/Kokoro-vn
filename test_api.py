@@ -9,12 +9,15 @@ if sys.stdout.encoding != 'utf-8':
 
 def main():
     voices = [
-        "diem_trinh", "hung_thinh", "mai_linh", "manh_dung", 
-        "my_yen", "ngoc_huyen", "phat_tai", "thanh_dat", "thuc_trinh", 
-        "tuan_ngoc", "duc_an", "duc_duy"
+        "diem_trinh"
     ]
+    # voices = [
+    #     "diem_trinh", "hung_thinh", "mai_linh", "manh_dung", 
+    #     "my_yen", "ngoc_huyen", "phat_tai", "thanh_dat", "thuc_trinh", 
+    #     "tuan_ngoc", "duc_an", "duc_duy"
+    # ]
     
-    text = "Xin chào thế giới"
+    text = "Tôi là người việt nam"
     print("Bắt đầu thử nghiệm tạo âm thanh với tất cả các giọng...")
     
     # Tạo thư mục lưu kết quả nếu chưa có
