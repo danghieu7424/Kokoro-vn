@@ -1,0 +1,4 @@
+2026-09-13T18:12:46.176261Z  INFO kokoro_api: Kokoro TTS API Server đang chạy tại http://0.0.0.0:7424 category="System"
+2026-09-13T18:12:46.177485Z  INFO kokoro_api: TTS Engine: ./kokoro-rs.exe category="System"
+2026-09-13T18:12:46.177816Z  INFO kokoro_api: Endpoints: POST /api/tts | GET /api/voices | GET /api/health category="System"
+2026-09-13T18:12:46.178273Z  INFO kokoro_api::infrastructure::log_compressor: Bắt đầu quét, nén file log > 7 ngày và xóa file > 30 ngày... category="System"
