@@ -8,7 +8,7 @@ for k, v in data.items():
     # Fix 1: Replace 'y' with 'ɨ' (Kokoro uses ɨ for ư/ươ)
     v = v.replace('y', 'ɨ')
     # Fix 2: Remove glottal stop 'ʔ' which sounds harsh in Kokoro
-    v = v.replace('ʔ', '')
+    # v = v.replace('ʔ', '') # KHÔNG XÓA NỮA! Ký tự này là yếu tố sống còn để tạo ra âm 'Nặng', nếu xóa nó sẽ biến thành dấu Ngã/Hỏi
     # Fix 3: Remove secondary stress 'ˌ' which might confuse the intonation
     v = v.replace('ˌ', '')
     refined[k] = v

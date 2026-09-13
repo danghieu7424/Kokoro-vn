@@ -17,7 +17,7 @@ def main():
     #     "tuan_ngoc", "duc_an", "duc_duy"
     # ]
     
-    text = "Độ pH của nước là 7"
+    text = "toàn diện"
     print("Bắt đầu thử nghiệm tạo âm thanh với tất cả các giọng...")
     
     # Tạo thư mục lưu kết quả nếu chưa có
@@ -32,6 +32,7 @@ def main():
             
             # Tạo âm thanh
             audio, phonemes = tts.synthesize(text)
+            print(f"Phonemes: {phonemes}")
             
             # Lưu thành file wav
             output_path = os.path.join(output_dir, f"{voice}.wav")
