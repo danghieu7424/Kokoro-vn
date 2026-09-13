@@ -46,7 +46,11 @@ fn number_to_words(n: u64) -> String {
         
         // Trăm
         if num_chunks > 1 && i < num_chunks - 1 {
-            chunk_words.push(units[c as usize].to_string());
+            if c == 0 {
+                chunk_words.push("không".to_string());
+            } else {
+                chunk_words.push(units[c as usize].to_string());
+            }
             chunk_words.push("trăm".to_string());
         } else if c > 0 {
             chunk_words.push(units[c as usize].to_string());
@@ -141,7 +145,26 @@ pub fn normalize(text: &str) -> String {
         t = new_t;
     }
 
-    // 2. Ký hiệu toán học
+    // 2. Ngày giờ và Thời gian (Phải xử lý trước toán học để tránh bị nhầm thành phép chia/trừ)
+    t = Regex::new(r"\b(\d{1,2})[-/](\d{1,2})[-/](\d{4})\b").unwrap().replace_all(&t, |caps: &Captures| {
+        let d_num: u32 = caps[1].parse().unwrap_or(10);
+        let m = caps[2].trim_start_matches('0');
+        let y = &caps[3];
+        
+        let d = if d_num >= 1 && d_num <= 9 {
+            format!("mùng {}", d_num)
+        } else {
+            format!("ngày {}", d_num)
+        };
+        
+        // Tách rời từng số của năm để đọc (2026 -> 2 0 2 6 -> hai không hai sáu)
+        let y_spaced = y.chars().map(|c| c.to_string()).collect::<Vec<String>>().join(" ");
+        format!("{} tháng {} năm {}", d, m, y_spaced)
+    }).into_owned();
+    t = Regex::new(r"\b(\d{1,2}):(\d{2}):(\d{2})\b").unwrap().replace_all(&t, "$1 giờ $2 phút $3 giây").into_owned();
+    t = Regex::new(r"\b(\d{1,2}):(\d{2})\b").unwrap().replace_all(&t, "$1 giờ $2 phút").into_owned();
+
+    // 3. Ký hiệu toán học
     t = t.replace("+", " cộng ");
     t = t.replace("*", " nhân ");
     t = t.replace("=", " bằng ");
