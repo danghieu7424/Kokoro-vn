@@ -233,6 +233,13 @@ pub fn normalize(text: &str) -> String {
     }
     t = t.replace("log", " lốc ").replace("ôm", " ôm "); // Tách chữ ôm nếu đứng liền
 
+    // Xử lý tốc độ (/s -> trên giây, /h -> trên giờ) dính liền với đơn vị đo lường
+    // Chỉ kích hoạt khi đằng trước là các chữ đặc thù của đơn vị để chống nhận nhầm URL
+    let rate_s = Regex::new(r"(mét|lít|gam|héc|bai|ra|ri|ôm|pe|vôn|oát|độ)\s*/\s*s\b").unwrap();
+    t = rate_s.replace_all(&t, "$1 trên giây").into_owned();
+    let rate_h = Regex::new(r"(mét|lít|gam|héc|bai|ra|ri|ôm|pe|vôn|oát|độ)\s*/\s*h\b").unwrap();
+    t = rate_h.replace_all(&t, "$1 trên giờ").into_owned();
+
     // Tách chữ và số dính liền nhau (VD: 32a -> 32 a)
     t = Regex::new(r"(\d)([a-zA-Z])").unwrap().replace_all(&t, "$1 $2").into_owned();
     t = Regex::new(r"([a-zA-Z])(\d)").unwrap().replace_all(&t, "$1 $2").into_owned();
