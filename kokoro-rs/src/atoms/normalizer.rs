@@ -162,8 +162,9 @@ pub fn normalize(text: &str) -> String {
         // Độ dài
         ("nm", "na nô mét"),
         ("pm", "pi cô mét"),
-        ("um", "mi crô mét"),
-        ("μm", "mi crô mét"),
+        ("um", "muy cờ rô mét"),
+        ("μm", "muy cờ rô mét"),
+        ("µm", "muy cờ rô mét"),
         ("mm", "mi li mét"),
         ("cm", "xen ti mét"),
         ("dm", "đề xi mét"),
