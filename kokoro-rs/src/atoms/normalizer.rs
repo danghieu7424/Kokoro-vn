@@ -162,7 +162,43 @@ pub fn normalize(text: &str) -> String {
         format!("{} tháng {} năm {}", d, m, y_spaced)
     }).into_owned();
     t = Regex::new(r"\b(\d{1,2}):(\d{2}):(\d{2})\b").unwrap().replace_all(&t, "$1 giờ $2 phút $3 giây").into_owned();
-    t = Regex::new(r"\b(\d{1,2}):(\d{2})\b").unwrap().replace_all(&t, "$1 giờ $2 phút").into_owned();
+    t = Regex::new(r"\b(\d{1,2}):(\d{2})\b").unwrap().replace_all(&t, |caps: &Captures| {
+        let h = &caps[1];
+        let m = &caps[2];
+        if m == "00" { format!("{} giờ", h) } else { format!("{} giờ {}", h, m) }
+    }).into_owned();
+
+    // Xử lý ngày tháng rút gọn (VD: 30/4, 01-09) - Tránh phá hỏng phân số 1/2, 3/4
+    t = Regex::new(r"(?i)(ngày\s+)?\b(\d{1,2})([-/])(\d{1,2})\b").unwrap().replace_all(&t, |caps: &Captures| {
+        let has_ngay = caps.get(1).is_some();
+        let ngay_str = caps.get(1).map_or("", |m| m.as_str());
+        let d_str = caps[2].to_string();
+        let sep = caps[3].to_string();
+        let m_str_raw = caps[4].to_string();
+        
+        let d_num: u32 = d_str.parse().unwrap_or(10);
+        let m_num: u32 = m_str_raw.parse().unwrap_or(10);
+        
+        let is_date = has_ngay || d_num > 12 || d_str.starts_with('0') || m_str_raw.starts_with('0');
+        
+        if is_date && m_num >= 1 && m_num <= 12 && d_num >= 1 && d_num <= 31 {
+            let m = m_str_raw.trim_start_matches('0');
+            let m_str = if m == "4" { "tư" } else { m };
+            
+            // "30/4" -> 30 tháng tư. "01/09" -> mùng 1 tháng 9.
+            let d_word = if has_ngay {
+                format!("{} {}", ngay_str.trim(), d_num)
+            } else if d_num >= 1 && d_num <= 9 {
+                format!("mùng {}", d_num)
+            } else {
+                format!("{}", d_num) // Để im số cho regex số đếm tự đọc
+            };
+            format!("{} tháng {}", d_word, m_str)
+        } else {
+            let prefix = if has_ngay { ngay_str } else { "" };
+            format!("{}{}{}{}", prefix, d_str, sep, m_str_raw)
+        }
+    }).into_owned();
 
     // 3. Ký hiệu toán học
     t = t.replace("+", " cộng ");
@@ -177,8 +213,9 @@ pub fn normalize(text: &str) -> String {
         if new_t == t { break; }
         t = new_t;
     }
+    // Phép chia (/), loại bỏ nếu nằm trong từ (như URL) - Người Việt hay đọc là 'phần' (1/2 -> một phần hai)
     loop {
-        let new_t = Regex::new(r"(\d+)\s*/\s*(\d+)").unwrap().replace_all(&t, "$1 chia $2").into_owned();
+        let new_t = Regex::new(r"(\d+)\s*/\s*(\d+)").unwrap().replace_all(&t, "$1 phần $2").into_owned();
         if new_t == t { break; }
         t = new_t;
     }
@@ -186,7 +223,15 @@ pub fn normalize(text: &str) -> String {
     // 3. Đại lượng đo lường
     t = t.replace("°c", " độ xê ").replace("°f", " độ ép ").replace("°", " độ ");
     
+    // Tiền tệ ($ phải xử lý riêng vì nó là ký tự đặc biệt trong Regex và không ăn \b)
+    t = Regex::new(r"(\d+)\s*\$").unwrap().replace_all(&t, "$1 đô la").into_owned();
+    
     let units = vec![
+        // Tiền tệ
+        ("đ", "đồng"),
+        ("vnđ", "việt nam đồng"),
+        ("vnd", "việt nam đồng"),
+
         // Độ dài
         ("nm", "na nô mét"),
         ("pm", "pi cô mét"),
