@@ -168,6 +168,9 @@ pub fn normalize(text: &str) -> String {
         if m == "00" { format!("{} giờ", h) } else { format!("{} giờ {}", h, m) }
     }).into_owned();
 
+    // Dấu ':' giữa 2 số còn sót lại (sau khi xử lý giờ) thường là tỉ lệ hoặc phép chia
+    t = Regex::new(r"(\d+)\s*:\s*(\d+)").unwrap().replace_all(&t, "$1 chia $2").into_owned();
+
     // Xử lý ngày tháng rút gọn (VD: 30/4, 01-09) - Tránh phá hỏng phân số 1/2, 3/4
     t = Regex::new(r"(?i)(ngày\s+)?\b(\d{1,2})([-/])(\d{1,2})\b").unwrap().replace_all(&t, |caps: &Captures| {
         let has_ngay = caps.get(1).is_some();
@@ -224,7 +227,8 @@ pub fn normalize(text: &str) -> String {
     t = t.replace("°c", " độ xê ").replace("°f", " độ ép ").replace("°", " độ ");
     
     // Tiền tệ ($ phải xử lý riêng vì nó là ký tự đặc biệt trong Regex và không ăn \b)
-    t = Regex::new(r"(\d+)\s*\$").unwrap().replace_all(&t, "$1 đô la").into_owned();
+    // Giọng TTS đôi khi đọc "đô la" thành "đô lả", đổi thành "đô" cho giao tiếp tự nhiên
+    t = Regex::new(r"(\d+)\s*\$").unwrap().replace_all(&t, "$1 đô").into_owned();
     
     let units = vec![
         // Tiền tệ
