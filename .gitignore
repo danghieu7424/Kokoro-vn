@@ -13,7 +13,9 @@ outputs/
 *.mp3
 *.flac
 *.onnx
+*.zip
 *.pth
+*.env
 !StyleTTS2/Utils/ASR/epoch_00080.pth
 *.pt
 dataset/
