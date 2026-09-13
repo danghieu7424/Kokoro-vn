@@ -33,3 +33,4 @@ docs/WORKLOG.md
 docs/superpowers/
 
 kokoro-rs/target
+kokoro-rs/api-server/target
