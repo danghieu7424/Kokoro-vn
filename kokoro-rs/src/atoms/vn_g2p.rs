@@ -1,6 +1,7 @@
 /****
  * [MODULE]: vn_g2p
- * Chức năng: Rule-based Vietnamese Grapheme-to-Phoneme cho Kokoro
+ * Chức năng: Vietnamese Grapheme-to-Phoneme hoàn chỉnh (Zero-Python)
+ * Sử dụng bộ từ điển 65,000 âm tiết đã được tinh chỉnh IPA để chống ngọng.
  ****/
 use std::collections::HashMap;
 use lazy_static::lazy_static;
@@ -10,25 +11,14 @@ lazy_static! {
     static ref PUNCTUATION_RE: Regex = Regex::new(r"([.!?…,:;\-—'”])").unwrap();
     static ref SPACES_RE: Regex = Regex::new(r"\s+").unwrap();
     
-    // Bảng quy tắc cơ bản chuyển đổi grapheme -> phoneme (POC)
-    // Để có bộ 100% hoàn hảo cần mapping toàn bộ âm đầu, âm đệm, âm chính, âm cuối.
-    // Dưới đây là bảng thu gọn đủ dùng cho các câu cơ bản.
-    static ref DICT: HashMap<&'static str, &'static str> = {
-        let mut m = HashMap::new();
-        m.insert("xin", "sˈin");
-        m.insert("chào", "ʧˈaː↘w");
-        m.insert("thế", "tʰˈe↗");
-        m.insert("giới", "zˈə↗j");
-        m.insert("tôi", "tˈoj");
-        m.insert("là", "lˈa↘");
-        m.insert("người", "ŋˈɨə↘j");
-        m.insert("việt", "vˈiə↓t");
-        m.insert("nam", "nˈam");
-        m
+    // Nạp toàn bộ 65,000+ từ điển âm vị tĩnh vào RAM lúc khởi động (Zero-latency)
+    static ref DICT: HashMap<String, String> = {
+        let json_str = include_str!("../../vi_syllables_refined.json");
+        serde_json::from_str(json_str).expect("Lỗi parse vi_syllables_refined.json")
     };
 }
 
-/// Tokenize văn bản, chuẩn hóa cơ bản và lookup ra âm vị
+/// Tokenize văn bản, chuẩn hóa cơ bản và tra cứu từ điển âm vị Kokoro
 pub fn phonemize(text: &str) -> String {
     let lower = text.to_lowercase();
     let spaced = PUNCTUATION_RE.replace_all(&lower, " $1 ");
@@ -36,16 +26,16 @@ pub fn phonemize(text: &str) -> String {
     
     let mut result = Vec::new();
     for word in cleaned.split_whitespace() {
-        if let Some(&phoneme) = DICT.get(word) {
+        if let Some(phoneme) = DICT.get(word) {
             result.push(phoneme.to_string());
         } else if word.chars().all(|c| c.is_ascii_punctuation()) {
             result.push(word.to_string());
         } else {
-            // Fallback nếu không có trong từ điển (Trong bản final, đây sẽ là thuật toán Regex)
-            // Tạm thời trả về word để đánh dấu lỗi chưa được xử lý
+            // Out of vocabulary (e.g. số, từ tiếng Anh)
             result.push(word.to_string());
         }
     }
     
     result.join(" ")
 }
+
