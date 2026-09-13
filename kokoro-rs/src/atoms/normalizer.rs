@@ -116,6 +116,17 @@ fn read_number(num_str: &str) -> String {
 pub fn normalize(text: &str) -> String {
     // Xử lý các từ viết tắt nhạy cảm chữ hoa chữ thường TRƯỚC KHI to_lowercase
     let mut t = text.replace("pH", " pê hát ").replace("PH", " pê hát ");
+    t = t.replace("UBND", "Ủy ban nhân dân");
+    t = t.replace("TP.HCM", "Thành phố Hồ Chí Minh");
+    t = t.replace("TP HCM", "Thành phố Hồ Chí Minh");
+    t = t.replace("CSGT", "Cảnh sát giao thông");
+    t = t.replace("thế kỷ XXI", "thế kỷ hai mươi mốt");
+    t = t.replace("thế kỷ XX", "thế kỷ hai mươi");
+    t = t.replace("thế kỷ XIX", "thế kỷ mười chín");
+    t = t.replace("Quý I", "Quý một");
+    t = t.replace("Quý II", "Quý hai");
+    t = t.replace("Quý III", "Quý ba");
+    t = t.replace("Quý IV", "Quý tư");
     
     t = t.to_lowercase();
     
@@ -129,18 +140,22 @@ pub fn normalize(text: &str) -> String {
     // Vần "ua" (Do từ điển gốc Kokoro sinh ra lỗi bỏ dấu trên chữ a thay vì chữ u)
     t = t.replace("úa", "uá").replace("ùa", "uà").replace("ủa", "uả").replace("ũa", "uã").replace("ụa", "uạ");
 
-    // 1. Số thập phân và hàng nghìn (loop để xử lý chuỗi kiểu 1.000.000)
+    // Sửa lỗi chính tả "hoặc" bị lỗi unicode trong từ điển
+    t = t.replace("hoặc", "hoạc");
+
+    // Xử lý số điện thoại: 098.123.4567 hoặc 098 123 4567 -> xóa phân cách để đọc từng số
+    t = Regex::new(r"\b(0\d{2,3})[.\s]+(\d{3})[.\s]+(\d{3,4})\b").unwrap().replace_all(&t, "$1$2$3").into_owned();
+    t = Regex::new(r"\b(\+84\d{2})[.\s]+(\d{3})[.\s]+(\d{3,4})\b").unwrap().replace_all(&t, "$1$2$3").into_owned();
+
+    // Xóa dấu phân cách hàng nghìn chuẩn (Ví dụ: 1.500.000 hoặc 1,500,000)
+    // Để không phá hỏng cấu trúc, ta duyệt và xóa các dấu . , nằm giữa các bộ 3 số
+    t = Regex::new(r"\b(\d{1,3}(?:[.,]\d{3})+)\b").unwrap().replace_all(&t, |caps: &Captures| {
+        caps[1].replace(".", "").replace(",", "")
+    }).into_owned();
+
+    // Số thập phân
     loop {
-        let new_t = Regex::new(r"(\d+)[.,](\d+)").unwrap().replace_all(&t, |caps: &Captures| {
-            let p1 = &caps[1];
-            let p2 = &caps[2];
-            // Nếu có đúng 3 chữ số phía sau và số đầu không phải 0 -> coi là phân cách hàng nghìn
-            if p2.len() == 3 && p1 != "0" {
-                format!("{}{}", p1, p2)
-            } else {
-                format!("{} phẩy {}", p1, p2)
-            }
-        }).into_owned();
+        let new_t = Regex::new(r"(\d+)[.,](\d+)").unwrap().replace_all(&t, "$1 phẩy $2").into_owned();
         if new_t == t { break; }
         t = new_t;
     }
@@ -213,9 +228,11 @@ pub fn normalize(text: &str) -> String {
     t = t.replace("^", " mũ ");
     t = t.replace("√", " căn ");
     
-    // Dùng Regex vòng lặp cho Trừ và Chia để tránh ăn mất dấu ngắt câu hoặc text thông thường (chỉ đổi khi nằm giữa 2 số)
+    // Dấu Trừ và Khoảng cách (Range): 
+    // Nếu dính liền 5-10 -> đọc là "đến" (trang 5 đến 10). Nếu có khoảng cách 5 - 10 -> "trừ".
+    t = Regex::new(r"(\d+)-(\d+)").unwrap().replace_all(&t, "$1 đến $2").into_owned();
     loop {
-        let new_t = Regex::new(r"(\d+)\s*-\s*(\d+)").unwrap().replace_all(&t, "$1 trừ $2").into_owned();
+        let new_t = Regex::new(r"(\d+)\s+-\s+(\d+)").unwrap().replace_all(&t, "$1 trừ $2").into_owned();
         if new_t == t { break; }
         t = new_t;
     }

@@ -19,7 +19,10 @@ impl Voicepack {
 
     pub fn get_style_for_length(&self, phoneme_length: usize) -> Result<Array2<f32>> {
         // Lấy style tham chiếu cho độ dài chuỗi phoneme
-        let idx = if phoneme_length > 0 { phoneme_length - 1 } else { 0 };
+        let mut idx = if phoneme_length > 0 { phoneme_length - 1 } else { 0 };
+        if idx >= self.styles.shape()[0] {
+            idx = self.styles.shape()[0] - 1;
+        }
         // Lấy mảng [1, 256]
         let style_row = self.styles.slice(ndarray::s![idx..idx+1, 0, ..]).to_owned();
         let reshaped = style_row.into_shape((1, 256))?;
