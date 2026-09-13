@@ -1,0 +1,10 @@
+D:\all_projects\AI\Kokoro-Vietnamese\kokoro-rs\api-server\target\release\deps\compression_core-9d0b00b6d799f2e2.d: C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\lib.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\level.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\unshared.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\util.rs
+
+D:\all_projects\AI\Kokoro-Vietnamese\kokoro-rs\api-server\target\release\deps\libcompression_core-9d0b00b6d799f2e2.rlib: C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\lib.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\level.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\unshared.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\util.rs
+
+D:\all_projects\AI\Kokoro-Vietnamese\kokoro-rs\api-server\target\release\deps\libcompression_core-9d0b00b6d799f2e2.rmeta: C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\lib.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\level.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\unshared.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\util.rs
+
+C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\lib.rs:
+C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\level.rs:
+C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\unshared.rs:
+C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\compression-core-0.4.33\src\util.rs:

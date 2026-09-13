@@ -1,0 +1,14 @@
+D:\all_projects\AI\Kokoro-Vietnamese\kokoro-rs\api-server\target\release\deps\thiserror-678f17373c98adf7.d: C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\lib.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\aserror.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\display.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\var.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\private.rs D:\all_projects\AI\Kokoro-Vietnamese\kokoro-rs\api-server\target\release\build\thiserror-7c9c9a55958dbb41\out/private.rs
+
+D:\all_projects\AI\Kokoro-Vietnamese\kokoro-rs\api-server\target\release\deps\libthiserror-678f17373c98adf7.rlib: C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\lib.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\aserror.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\display.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\var.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\private.rs D:\all_projects\AI\Kokoro-Vietnamese\kokoro-rs\api-server\target\release\build\thiserror-7c9c9a55958dbb41\out/private.rs
+
+D:\all_projects\AI\Kokoro-Vietnamese\kokoro-rs\api-server\target\release\deps\libthiserror-678f17373c98adf7.rmeta: C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\lib.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\aserror.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\display.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\var.rs C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\private.rs D:\all_projects\AI\Kokoro-Vietnamese\kokoro-rs\api-server\target\release\build\thiserror-7c9c9a55958dbb41\out/private.rs
+
+C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\lib.rs:
+C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\aserror.rs:
+C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\display.rs:
+C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\var.rs:
+C:\Users\dangh\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\private.rs:
+D:\all_projects\AI\Kokoro-Vietnamese\kokoro-rs\api-server\target\release\build\thiserror-7c9c9a55958dbb41\out/private.rs:
+
+# env-dep:OUT_DIR=D:\\all_projects\\AI\\Kokoro-Vietnamese\\kokoro-rs\\api-server\\target\\release\\build\\thiserror-7c9c9a55958dbb41\\out
