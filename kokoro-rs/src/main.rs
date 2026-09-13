@@ -7,15 +7,30 @@ use atoms::audio::save_wav;
 use atoms::vn_g2p;
 use lazy_static::lazy_static;
 use std::sync::{Arc, Mutex};
+use std::collections::HashMap;
 use std::thread;
 use std::time::Instant;
+use std::fs;
 
 lazy_static! {
     // 1. Khởi tạo Tokenizer
     static ref TOKENIZER: Tokenizer = Tokenizer::new("config.json").expect("Lỗi load config.json");
     
-    // 2. Load Voicepack (.npy)
-    static ref VOICEPACK: Voicepack = Voicepack::load("../voicepacks_npy/diem_trinh.npy").expect("Lỗi load voicepack");
+    // 2. Load tất cả Voicepacks vào RAM (12 giọng x ~500KB = ~6MB siêu nhẹ)
+    static ref VOICEPACKS: HashMap<String, Voicepack> = {
+        let mut m = HashMap::new();
+        let voices = vec![
+            "diem_trinh", "hung_thinh", "mai_linh", "manh_dung", 
+            "my_yen", "ngoc_huyen", "phat_tai", "thanh_dat", "thuc_trinh", 
+            "tuan_ngoc", "duc_an", "duc_duy"
+        ];
+        for v in voices {
+            let path = format!("../voicepacks_npy/{}.npy", v);
+            let pack = Voicepack::load(&path).unwrap_or_else(|_| panic!("Lỗi load {}", v));
+            m.insert(v.to_string(), pack);
+        }
+        m
+    };
     
     // 3. Load ONNX Model bọc trong Mutex để an toàn đa luồng
     static ref ENGINE: Arc<Mutex<KokoroEngine>> = Arc::new(Mutex::new(
@@ -23,72 +38,74 @@ lazy_static! {
     ));
 }
 
-fn process_text(id: usize, text: &str) -> anyhow::Result<()> {
-    println!("[Luồng {}] Đang xử lý: '{}'", id, text);
+use clap::Parser;
+
+/// Kokoro-RS TTS (100% Rust)
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Văn bản cần đọc
+    #[arg(short = 't', long)]
+    text: String,
+
+    /// Tên file đầu ra (VD: audio.wav)
+    #[arg(short = 'o', long, default_value = "output.wav")]
+    output: String,
+
+    /// Tên giọng đọc (VD: diem_trinh, hung_thinh...)
+    #[arg(short = 'v', long, default_value = "diem_trinh")]
+    voice: String,
+
+    /// Tốc độ đọc (Mặc định 1.0)
+    #[arg(short = 's', long, default_value_t = 1.0)]
+    speed: f32,
+}
+
+fn process_voice(voice: &str, text: &str, output: &str, speed: f32) -> anyhow::Result<()> {
+    println!("\n--- Đang xử lý giọng: {} ---", voice);
     
-    // Bước 1: G2P NLP (Text to Phonemes)
+    // NLP G2P
     let phonemes = vn_g2p::phonemize(text);
-    println!("[Luồng {}] Phonemes: {}", id, phonemes);
+    println!("Phonemes: {}", phonemes);
     
-    // Bước 2: Tokenize (Phonemes to IDs)
+    // Tokenize
     let input_ids = TOKENIZER.encode(&phonemes);
     
-    // Bước 3: Trích xuất Style
-    let ref_s = VOICEPACK.get_style_for_length(input_ids.len())?;
+    // Extract Style
+    let pack = VOICEPACKS.get(voice).ok_or_else(|| anyhow::anyhow!("Không tìm thấy giọng: {}", voice))?;
+    let ref_s = pack.get_style_for_length(input_ids.len())?;
     
-    // Bước 4: Chạy Inference (Khóa Mutex để tránh đụng độ)
+    // Inference
     let start_time = Instant::now();
     let audio_output = {
         let mut engine_lock = ENGINE.lock().unwrap();
-        engine_lock.synthesize(input_ids, ref_s.to_owned(), 1.0)?
+        engine_lock.synthesize(input_ids, ref_s.to_owned(), speed)?
     };
-    let duration = start_time.elapsed();
     
-    println!("[Luồng {}] Tạo âm thanh xong! Thời gian: {:?}", id, duration);
+    // Tạo thư mục nếu đường dẫn có chứa thư mục
+    if let Some(parent) = std::path::Path::new(output).parent() {
+        if !parent.as_os_str().is_empty() {
+            fs::create_dir_all(parent)?;
+        }
+    }
     
-    // Bước 5: Lưu Audio
-    let output_file = format!("output_rs_{}.wav", id);
-    save_wav(&audio_output, &output_file, 24000)?;
-    println!("[Luồng {}] Đã lưu {}", id, output_file);
+    save_wav(&audio_output, output, 24000)?;
+    println!("✅ Đã lưu thành công: {} (Thời gian xử lý: {:?})", output, start_time.elapsed());
     
     Ok(())
 }
 
 fn main() -> anyhow::Result<()> {
-    println!("Khởi tạo hệ thống Kokoro-RS (100% Rust) với Global Memory & Multithreading...");
-
-    // Gọi lần đầu để kích hoạt lazy_static nạp vào RAM
+    let args = Args::parse();
+    
+    // Kích hoạt lazy_static nạp vào RAM
     let _ = &*TOKENIZER;
-    let _ = &*VOICEPACK;
+    let _ = &*VOICEPACKS;
     let _ = &*ENGINE;
     
-    println!("Đã nạp toàn bộ Model và Voicepack vào RAM!");
-
-    let texts = vec![
-        "Xin chào thế giới",
-        "Tôi là người việt nam",
-        "Xin chào việt nam"
-    ];
-
-    let mut handles = vec![];
-    
-    let total_start = Instant::now();
-
-    for (i, text) in texts.into_iter().enumerate() {
-        let txt = text.to_string();
-        let handle = thread::spawn(move || {
-            if let Err(e) = process_text(i + 1, &txt) {
-                eprintln!("[Luồng {}] Lỗi: {:?}", i + 1, e);
-            }
-        });
-        handles.push(handle);
+    if let Err(e) = process_voice(&args.voice, &args.text, &args.output, args.speed) {
+        eprintln!("❌ Lỗi: {:?}", e);
     }
-
-    for handle in handles {
-        handle.join().unwrap();
-    }
-    
-    println!("Hoàn tất toàn bộ yêu cầu trong: {:?}", total_start.elapsed());
     
     Ok(())
 }
