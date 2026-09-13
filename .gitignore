@@ -29,3 +29,5 @@ voices/*.pt
 *.voicepack.pt
 docs/WORKLOG.md
 docs/superpowers/
+
+kokoro-rs/target
