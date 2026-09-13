@@ -110,7 +110,10 @@ fn read_number(num_str: &str) -> String {
 }
 
 pub fn normalize(text: &str) -> String {
-    let mut t = text.to_lowercase();
+    // Xử lý các từ viết tắt nhạy cảm chữ hoa chữ thường TRƯỚC KHI to_lowercase
+    let mut t = text.replace("pH", " pê hát ").replace("PH", " pê hát ");
+    
+    t = t.to_lowercase();
     
     // 0. Chuẩn hóa vị trí dấu thanh (Kiểu cũ -> Kiểu mới để map đúng với từ điển sinh ra)
     // Vần "oa"
@@ -119,6 +122,8 @@ pub fn normalize(text: &str) -> String {
     t = t.replace("óe", "oé").replace("òe", "oè").replace("ỏe", "oẻ").replace("õe", "oẽ").replace("ọe", "oẹ");
     // Vần "uy"
     t = t.replace("úy", "uý").replace("ùy", "uỳ").replace("ủy", "uỷ").replace("ũy", "uỹ").replace("ụy", "uỵ");
+    // Vần "ua" (Do từ điển gốc Kokoro sinh ra lỗi bỏ dấu trên chữ a thay vì chữ u)
+    t = t.replace("úa", "uá").replace("ùa", "uà").replace("ủa", "uả").replace("ũa", "uã").replace("ụa", "uạ");
 
     // 1. Số thập phân và hàng nghìn (loop để xử lý chuỗi kiểu 1.000.000)
     loop {
@@ -189,6 +194,24 @@ pub fn normalize(text: &str) -> String {
         ("gb", "ghi ga bai"),
         ("tb", "tê ra bai"),
         ("pb", "pê ta bai"),
+        
+        // Điện dung (Farad)
+        ("pf", "pi cô fa ra"),
+        ("nf", "na nô fa ra"),
+        ("uf", "muy cờ rô fa ra"),
+        ("μf", "muy cờ rô fa ra"),
+        ("µf", "muy cờ rô fa ra"),
+        ("mf", "mi li fa ra"),
+        ("f", "fa ra"),
+        
+        // Điện cảm (Henry)
+        // Bỏ qua pH (pi cô hen ri) để tránh trùng chữ "ph" (phút) hoặc "độ pH"
+        ("nh", "na nô hen ri"),
+        ("uh", "muy cờ rô hen ri"),
+        ("μh", "muy cờ rô hen ri"),
+        ("µh", "muy cờ rô hen ri"),
+        ("mh", "mi li hen ri"),
+        ("h", "hen ri"),
         
         // Điện học (Vật lý)
         ("Ω", "ôm"),

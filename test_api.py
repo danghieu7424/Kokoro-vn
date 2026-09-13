@@ -17,7 +17,7 @@ def main():
     #     "tuan_ngoc", "duc_an", "duc_duy"
     # ]
     
-    text = "Tôi là người việt nam"
+    text = "Độ pH của nước là 7"
     print("Bắt đầu thử nghiệm tạo âm thanh với tất cả các giọng...")
     
     # Tạo thư mục lưu kết quả nếu chưa có

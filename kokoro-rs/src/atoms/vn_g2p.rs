@@ -29,7 +29,10 @@ pub fn phonemize(text: &str) -> String {
     let mut result = Vec::new();
     for word in cleaned.split_whitespace() {
         if let Some(phoneme) = DICT.get(word) {
-            result.push(phoneme.to_string());
+            // Vá lỗi đặc trị: Từ điển Kokoro gốc bị lỗi tách âm vần 'ua' (Ví dụ cuả -> kˈu ˈaː↓)
+            // Ta nối lại thành âm 'uə' (kˈuə↓) để hệ thống đọc mượt mà chữ "của", "chúa", "múa"...
+            let patched_phoneme = phoneme.replace("ˈu ˈaː", "ˈuə");
+            result.push(patched_phoneme);
         } else if word.chars().all(|c| c.is_ascii_punctuation()) {
             result.push(word.to_string());
         } else {
