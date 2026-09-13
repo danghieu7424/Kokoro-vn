@@ -39,6 +39,7 @@ lazy_static! {
 }
 
 use clap::Parser;
+use atoms::dsp;
 
 /// Kokoro-RS TTS (100% Rust)
 #[derive(Parser, Debug)]
@@ -48,49 +49,96 @@ struct Args {
     #[arg(short = 't', long)]
     text: String,
 
-    /// Tên file đầu ra (VD: audio.wav)
+    /// Tên file đầu ra (VD: output.wav)
     #[arg(short = 'o', long, default_value = "output.wav")]
     output: String,
 
-    /// Tên giọng đọc (VD: diem_trinh, hung_thinh...)
+    /// Tên giọng đọc chính (VD: diem_trinh)
     #[arg(short = 'v', long, default_value = "diem_trinh")]
     voice: String,
 
     /// Tốc độ đọc (Mặc định 1.0)
     #[arg(short = 's', long, default_value_t = 1.0)]
     speed: f32,
+
+    /// Trộn Tone (Pha trộn Voicepack). VD: "diem_trinh=70,duc_duy=30"
+    #[arg(short = 'm', long)]
+    mix_blend: Option<String>,
+
+    /// Pitch shift (Cent, giống FL Studio). +100 = lên 1 nửa cung (semitone).
+    #[arg(short = 'p', long, default_value_t = 0.0)]
+    pitch: f32,
 }
 
-fn process_voice(voice: &str, text: &str, output: &str, speed: f32) -> anyhow::Result<()> {
-    println!("\n--- Đang xử lý giọng: {} ---", voice);
-    
-    // NLP G2P
-    let phonemes = vn_g2p::phonemize(text);
+fn process_voice(args: &Args) -> anyhow::Result<()> {
+    println!("\n--- Đang xử lý G2P NLP ---");
+    let phonemes = vn_g2p::phonemize(&args.text);
     println!("Phonemes: {}", phonemes);
     
-    // Tokenize
     let input_ids = TOKENIZER.encode(&phonemes);
     
-    // Extract Style
-    let pack = VOICEPACKS.get(voice).ok_or_else(|| anyhow::anyhow!("Không tìm thấy giọng: {}", voice))?;
-    let ref_s = pack.get_style_for_length(input_ids.len())?;
+    // Logic Lấy Style & Trộn Tone
+    let ref_s = if let Some(blend_str) = &args.mix_blend {
+        println!("--- Đang pha trộn Tone: {} ---", blend_str);
+        let mut mixed_style = ndarray::Array2::<f32>::zeros((1, 256));
+        let mut total_weight = 0.0;
+        
+        let parts: Vec<&str> = blend_str.split(',').collect();
+        for part in parts {
+            let kv: Vec<&str> = part.split('=').collect();
+            if kv.len() == 2 {
+                let v_name = kv[0].trim();
+                let weight: f32 = kv[1].trim().parse().unwrap_or(0.0);
+                total_weight += weight;
+                
+                let pack = VOICEPACKS.get(v_name).ok_or_else(|| anyhow::anyhow!("Không tìm thấy giọng: {}", v_name))?;
+                let style = pack.get_style_for_length(input_ids.len())?;
+                mixed_style = mixed_style + (&style * weight);
+            }
+        }
+        
+        if total_weight > 0.0 {
+            mixed_style = mixed_style / total_weight;
+        } else {
+            return Err(anyhow::anyhow!("Trọng số pha trộn Tone không hợp lệ"));
+        }
+        mixed_style
+    } else {
+        println!("--- Đang dùng giọng đơn: {} ---", args.voice);
+        let pack = VOICEPACKS.get(&args.voice).ok_or_else(|| anyhow::anyhow!("Không tìm thấy giọng: {}", args.voice))?;
+        pack.get_style_for_length(input_ids.len())?
+    };
+    
+    // Tính toán tỷ lệ Pitch theo Cents (Mỗi 100 cents = 1 nửa cung)
+    // Tốc độ Kokoro sẽ được sinh ra chậm lại (hoặc nhanh lên) tương ứng, sau đó Resample để ép Pitch
+    let pitch_ratio = 2.0_f32.powf(args.pitch / 1200.0);
+    let kokoro_speed = args.speed / pitch_ratio;
+
+    if args.pitch != 0.0 {
+        println!("--- Pitch Shift: {} cents (Ratio: {:.3}) ---", args.pitch, pitch_ratio);
+    }
     
     // Inference
     let start_time = Instant::now();
-    let audio_output = {
+    let mut audio_output = {
         let mut engine_lock = ENGINE.lock().unwrap();
-        engine_lock.synthesize(input_ids, ref_s.to_owned(), speed)?
+        engine_lock.synthesize(input_ids, ref_s, kokoro_speed)?
     };
+
+    // Resampling để khôi phục tốc độ và bóp méo Pitch
+    if args.pitch != 0.0 {
+        audio_output = dsp::resample_audio(&audio_output, pitch_ratio);
+    }
     
-    // Tạo thư mục nếu đường dẫn có chứa thư mục
-    if let Some(parent) = std::path::Path::new(output).parent() {
+    // Lưu file
+    if let Some(parent) = std::path::Path::new(&args.output).parent() {
         if !parent.as_os_str().is_empty() {
             fs::create_dir_all(parent)?;
         }
     }
     
-    save_wav(&audio_output, output, 24000)?;
-    println!("✅ Đã lưu thành công: {} (Thời gian xử lý: {:?})", output, start_time.elapsed());
+    save_wav(&audio_output, &args.output, 24000)?;
+    println!("✅ Đã lưu thành công: {} (Thời gian xử lý: {:?})", args.output, start_time.elapsed());
     
     Ok(())
 }
@@ -98,12 +146,11 @@ fn process_voice(voice: &str, text: &str, output: &str, speed: f32) -> anyhow::R
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     
-    // Kích hoạt lazy_static nạp vào RAM
     let _ = &*TOKENIZER;
     let _ = &*VOICEPACKS;
     let _ = &*ENGINE;
     
-    if let Err(e) = process_voice(&args.voice, &args.text, &args.output, args.speed) {
+    if let Err(e) = process_voice(&args) {
         eprintln!("❌ Lỗi: {:?}", e);
     }
     
