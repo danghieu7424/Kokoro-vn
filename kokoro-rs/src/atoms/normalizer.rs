@@ -120,17 +120,51 @@ pub fn normalize(text: &str) -> String {
     // Vần "uy"
     t = t.replace("úy", "uý").replace("ùy", "uỳ").replace("ủy", "uỷ").replace("ũy", "uỹ").replace("ụy", "uỵ");
 
-    // 1. Ký tự đặc biệt
+    // 1. Số thập phân và hàng nghìn (loop để xử lý chuỗi kiểu 1.000.000)
+    loop {
+        let new_t = Regex::new(r"(\d+)[.,](\d+)").unwrap().replace_all(&t, |caps: &Captures| {
+            let p1 = &caps[1];
+            let p2 = &caps[2];
+            // Nếu có đúng 3 chữ số phía sau và số đầu không phải 0 -> coi là phân cách hàng nghìn
+            if p2.len() == 3 && p1 != "0" {
+                format!("{}{}", p1, p2)
+            } else {
+                format!("{} phẩy {}", p1, p2)
+            }
+        }).into_owned();
+        if new_t == t { break; }
+        t = new_t;
+    }
+
+    // 2. Ký hiệu toán học
+    t = t.replace("+", " cộng ");
+    t = t.replace("*", " nhân ");
+    t = t.replace("=", " bằng ");
+    t = t.replace("^", " mũ ");
+    t = t.replace("√", " căn ");
+    
+    // Dùng Regex vòng lặp cho Trừ và Chia để tránh ăn mất dấu ngắt câu hoặc text thông thường (chỉ đổi khi nằm giữa 2 số)
+    loop {
+        let new_t = Regex::new(r"(\d+)\s*-\s*(\d+)").unwrap().replace_all(&t, "$1 trừ $2").into_owned();
+        if new_t == t { break; }
+        t = new_t;
+    }
+    loop {
+        let new_t = Regex::new(r"(\d+)\s*/\s*(\d+)").unwrap().replace_all(&t, "$1 chia $2").into_owned();
+        if new_t == t { break; }
+        t = new_t;
+    }
+
+    // 3. Ký tự đặc biệt khác
     t = t.replace("%", " phần trăm ");
     t = t.replace("&", " và ");
-    t = t.replace("+", " cộng ");
     
-    // 2. Các từ vựng tiếng Anh công nghệ phổ biến
+    // 4. Các từ vựng tiếng Anh công nghệ phổ biến
     t = t.replace("rust", " rớt ");
     t = t.replace("mix", " mích ");
     t = t.replace("fl", " ép eo ");
     
-    // 3. Quy đổi số thành chữ
+    // 5. Quy đổi số thành chữ
     let t = NUM_RE.replace_all(&t, |caps: &Captures| {
         read_number(&caps[1])
     });
