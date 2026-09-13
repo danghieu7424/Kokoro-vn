@@ -155,16 +155,74 @@ pub fn normalize(text: &str) -> String {
         t = new_t;
     }
 
-    // 3. Ký tự đặc biệt khác
+    // 3. Đại lượng đo lường
+    t = t.replace("°c", " độ xê ").replace("°f", " độ ép ").replace("°", " độ ");
+    
+    let units = vec![
+        // Độ dài
+        ("nm", "na nô mét"),
+        ("pm", "pi cô mét"),
+        ("um", "mi crô mét"),
+        ("μm", "mi crô mét"),
+        ("mm", "mi li mét"),
+        ("cm", "xen ti mét"),
+        ("dm", "đề xi mét"),
+        ("m", "mét"),
+        ("km", "ki lô mét"),
+        
+        // Thể tích & Khối lượng
+        ("ml", "mi li lít"),
+        ("l", "lít"),
+        ("mg", "mi li gam"),
+        ("g", "gam"),
+        ("kg", "ki lô gam"),
+        
+        // Tần số
+        ("hz", "héc"),
+        ("mhz", "mê ga héc"),
+        ("ghz", "ghi ga héc"),
+        
+        // Dữ liệu IT
+        ("kb", "ki lô bai"),
+        ("mb", "mê ga bai"),
+        ("gb", "ghi ga bai"),
+        ("tb", "tê ra bai"),
+        ("pb", "pê ta bai"),
+        
+        // Điện học (Vật lý)
+        ("Ω", "ôm"),
+        ("ω", "ôm"),
+        ("ohm", "ôm"),
+        ("ampe", "am pe"),
+        ("ma", "mi li am pe"),
+        ("a", "am pe"),
+        ("kv", "ki lô vôn"),
+        ("mv", "mi li vôn"),
+        ("v", "vôn"),
+        ("kw", "ki lô oát"),
+        ("mw", "mê ga oát"),
+        ("w", "oát"),
+    ];
+    for (sym, text) in units {
+        let re = Regex::new(&format!(r"(\d+)\s*{}\b", sym)).unwrap();
+        t = re.replace_all(&t, format!("$1 {}", text)).into_owned();
+    }
+    t = t.replace("log", " lốc ").replace("ôm", " ôm "); // Tách chữ ôm nếu đứng liền
+
+    // Tách chữ và số dính liền nhau (VD: 32a -> 32 a)
+    t = Regex::new(r"(\d)([a-zA-Z])").unwrap().replace_all(&t, "$1 $2").into_owned();
+    t = Regex::new(r"([a-zA-Z])(\d)").unwrap().replace_all(&t, "$1 $2").into_owned();
+
+    // 4. Ký tự đặc biệt khác
     t = t.replace("%", " phần trăm ");
     t = t.replace("&", " và ");
     
-    // 4. Các từ vựng tiếng Anh công nghệ phổ biến
+    // 5. Các từ vựng tiếng Anh công nghệ phổ biến
     t = t.replace("rust", " rớt ");
     t = t.replace("mix", " mích ");
     t = t.replace("fl", " ép eo ");
     
-    // 5. Quy đổi số thành chữ
+    // 6. Quy đổi số thành chữ
     let t = NUM_RE.replace_all(&t, |caps: &Captures| {
         read_number(&caps[1])
     });
