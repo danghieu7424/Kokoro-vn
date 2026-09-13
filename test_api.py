@@ -14,7 +14,7 @@ def main():
         "tuan_ngoc", "duc_an", "duc_duy"
     ]
     
-    text = "Xin chào, đây là một ví dụ thử nghiệm tất cả các giọng nói tiếng Việt."
+    text = "Xin chào thế giới"
     print("Bắt đầu thử nghiệm tạo âm thanh với tất cả các giọng...")
     
     # Tạo thư mục lưu kết quả nếu chưa có
