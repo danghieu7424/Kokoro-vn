@@ -10,16 +10,38 @@ Kokoro-RS là phiên bản port sang Rust của hệ thống Kokoro TTS, đượ
 cargo run --release -- -t "Nội dung văn bản cần đọc" -o "outputs/audio.wav"
 ```
 
-**Các tham số:**
+**Các tham số chính:**
 - `-t`, `--text`: Chuỗi văn bản tiếng Việt cần đọc.
-- `-o`, `--output`: Đường dẫn lưu file âm thanh `.wav` đầu ra.
+- `-o`, `--output`: Đường dẫn lưu file âm thanh `.wav` đầu ra (Mặc định: `output.wav`).
+- `-v`, `--voice`: Tên giọng đọc chính (Mặc định: `diem_trinh`).
+- `-s`, `--speed`: Tốc độ đọc (Mặc định: `1.0`).
+- `-m`, `--mix-blend`: Trộn Tone (Pha trộn nhiều giọng). VD: `"diem_trinh=70,duc_duy=30"`.
+- `-p`, `--pitch`: Tăng giảm Pitch (Cent, giống FL Studio). Tăng 100 = lên 1 nửa cung.
 
-Ví dụ:
+Ví dụ nâng cao:
 ```bash
-cargo run --release -- -t "Hôm nay là 13/09/2026 lúc 11:30. Giá 500đ" -o "outputs/test.wav"
+cargo run --release -- -t "Hôm nay là 13/09/2026 lúc 11:30. Giá 500đ" -v "tuan_ngoc" -s 1.2 -m "tuan_ngoc=80,diem_trinh=20" -o "outputs/test.wav"
 ```
 
+### 🗣 Danh sách Giọng đọc (Voices) hỗ trợ
+
+| Mã Giọng (`--voice`) | Giới tính / Mô tả |
+| --- | --- |
+| `diem_trinh` | Nữ (Giọng chuẩn, truyền cảm) |
+| `hung_thinh` | Nam |
+| `mai_linh` | Nữ |
+| `manh_dung` | Nam |
+| `my_yen` | Nữ |
+| `ngoc_huyen` | Nữ |
+| `phat_tai` | Nam |
+| `thanh_dat` | Nam |
+| `thuc_trinh` | Nữ |
+| `tuan_ngoc` | Nam |
+| `duc_an` | Nam |
+| `duc_duy` | Nam |
+
 ---
+
 
 ## 🧠 Sức mạnh của Bộ Chuẩn hóa Văn bản (Normalizer)
 
