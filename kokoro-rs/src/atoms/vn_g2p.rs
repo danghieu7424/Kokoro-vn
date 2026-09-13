@@ -6,9 +6,10 @@
 use std::collections::HashMap;
 use lazy_static::lazy_static;
 use regex::Regex;
+use super::normalizer;
 
 lazy_static! {
-    static ref PUNCTUATION_RE: Regex = Regex::new(r"([.!?…,:;\-—'”])").unwrap();
+    static ref PUNCTUATION_RE: Regex = Regex::new(r#"([.!?…,:;\-—'"”“()\[\]{}%])"#).unwrap();
     static ref SPACES_RE: Regex = Regex::new(r"\s+").unwrap();
     
     // Nạp toàn bộ 65,000+ từ điển âm vị tĩnh vào RAM lúc khởi động (Zero-latency)
@@ -20,7 +21,8 @@ lazy_static! {
 
 /// Tokenize văn bản, chuẩn hóa cơ bản và tra cứu từ điển âm vị Kokoro
 pub fn phonemize(text: &str) -> String {
-    let lower = text.to_lowercase();
+    let norm_text = normalizer::normalize(text);
+    let lower = norm_text.to_lowercase();
     let spaced = PUNCTUATION_RE.replace_all(&lower, " $1 ");
     let cleaned = SPACES_RE.replace_all(&spaced, " ");
     
