@@ -25,7 +25,7 @@ lazy_static! {
             "tuan_ngoc", "duc_an", "duc_duy"
         ];
         for v in voices {
-            let path = format!("../voicepacks_npy/{}.npy", v);
+            let path = format!("voicepacks_npy/{}.npy", v);
             let pack = Voicepack::load(&path).unwrap_or_else(|_| panic!("Lỗi load {}", v));
             m.insert(v.to_string(), pack);
         }
