@@ -2,3 +2,97 @@
 2026-09-13T18:12:46.177485Z  INFO kokoro_api: TTS Engine: ./kokoro-rs.exe category="System"
 2026-09-13T18:12:46.177816Z  INFO kokoro_api: Endpoints: POST /api/tts | GET /api/voices | GET /api/health category="System"
 2026-09-13T18:12:46.178273Z  INFO kokoro_api::infrastructure::log_compressor: Bắt đầu quét, nén file log > 7 ngày và xóa file > 30 ngày... category="System"
+2026-09-13T18:22:39.935121Z  INFO kokoro_api: Kokoro TTS API Server đang chạy tại http://0.0.0.0:7424 category="System"
+2026-09-13T18:22:39.936212Z  INFO kokoro_api: TTS Engine: ./kokoro-rs.exe category="System"
+2026-09-13T18:22:39.936476Z  INFO kokoro_api: Endpoints: POST /api/tts | GET /api/voices | GET /api/health category="System"
+2026-09-13T18:22:39.948912Z  INFO kokoro_api::infrastructure::log_compressor: Bắt đầu quét, nén file log > 7 ngày và xóa file > 30 ngày... category="System"
+2026-09-13T18:25:20.720920Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=ae9729d8 method=GET uri=/api/voices
+2026-09-13T18:25:31.829126Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=35dae835 method=OPTIONS uri=/api/tts
+2026-09-13T18:25:33.334806Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=76becc4b method=OPTIONS uri=/api/tts
+2026-09-13T18:30:45.788729Z  WARN kokoro_api: Đã nhận tín hiệu tắt máy! Tiến hành Graceful Shutdown... category="Warning"
+2026-09-13T18:30:45.789198Z  INFO kokoro_api: Hoàn tất dọn dẹp. Tạm biệt! category="System"
+2026-09-13T18:30:52.856136Z  INFO kokoro_api: Kokoro TTS API Server đang chạy tại http://0.0.0.0:7424 category="System"
+2026-09-13T18:30:52.857265Z  INFO kokoro_api: TTS Engine: ./kokoro-rs.exe category="System"
+2026-09-13T18:30:52.857495Z  INFO kokoro_api: Endpoints: POST /api/tts | GET /api/voices | GET /api/health category="System"
+2026-09-13T18:30:52.866719Z  INFO kokoro_api::infrastructure::log_compressor: Bắt đầu quét, nén file log > 7 ngày và xóa file > 30 ngày... category="System"
+2026-09-13T18:31:57.457233Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=7b083eba method=GET uri=/
+2026-09-13T18:31:57.762045Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=62d81b88 method=GET uri=/api/voices
+2026-09-13T18:31:57.802107Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=e2f982c1 method=GET uri=/favicon.ico
+2026-09-13T18:32:50.336972Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=9023df8b method=GET uri=/
+2026-09-13T18:32:50.460683Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=d95c0887 method=GET uri=/api/voices
+2026-09-13T18:32:50.477696Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=4f3c4c94 method=GET uri=/favicon.ico
+2026-09-13T18:32:51.778285Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=90a25a71 method=GET uri=/
+2026-09-13T18:32:51.882556Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=2b6eeada method=GET uri=/api/voices
+2026-09-13T18:32:51.891503Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=4756ca84 method=GET uri=/favicon.ico
+2026-09-13T18:32:52.014858Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=910eb8ce method=GET uri=/
+2026-09-13T18:32:52.124546Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=957df741 method=GET uri=/api/voices
+2026-09-13T18:32:52.134720Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=a6ad7fb0 method=GET uri=/favicon.ico
+2026-09-13T18:32:52.191035Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=c3797f8f method=GET uri=/
+2026-09-13T18:32:52.294538Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=5b2de1b4 method=GET uri=/api/voices
+2026-09-13T18:32:52.303330Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=a0fd8c62 method=GET uri=/favicon.ico
+2026-09-13T18:32:52.378700Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=7a0db408 method=GET uri=/
+2026-09-13T18:32:52.480185Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=ba126c9c method=GET uri=/api/voices
+2026-09-13T18:32:52.491673Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=608ad216 method=GET uri=/favicon.ico
+2026-09-13T18:32:55.517918Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Error" status=404 reason="Not Found" latency_ms=0 id=22215285 method=GET uri=/.well-known/appspecific/com.chrome.devtools.json
+2026-09-13T18:34:30.460578Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=a7221eaf method=GET uri=/
+2026-09-13T18:34:30.498433Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Error" status=404 reason="Not Found" latency_ms=0 id=387fb5ed method=GET uri=/.well-known/appspecific/com.chrome.devtools.json
+2026-09-13T18:34:30.741512Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=ecd1ca1b method=GET uri=/api/voices
+2026-09-13T18:34:30.762917Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=2131efea method=GET uri=/favicon.ico
+2026-09-13T18:34:36.708552Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=f6ccd378 method=GET uri=/
+2026-09-13T18:34:36.745474Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Error" status=404 reason="Not Found" latency_ms=0 id=e9aaa8a6 method=GET uri=/.well-known/appspecific/com.chrome.devtools.json
+2026-09-13T18:34:36.973690Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=d94cad10 method=GET uri=/api/voices
+2026-09-13T18:34:36.995552Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=2671ed19 method=GET uri=/favicon.ico
+2026-09-13T18:34:38.118915Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=ad847780 method=GET uri=/
+2026-09-13T18:34:38.155986Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Error" status=404 reason="Not Found" latency_ms=0 id=4e9c7e0d method=GET uri=/.well-known/appspecific/com.chrome.devtools.json
+2026-09-13T18:34:38.369999Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=41c31b8b method=GET uri=/api/voices
+2026-09-13T18:34:38.388002Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=b91c9d43 method=GET uri=/favicon.ico
+2026-09-13T18:34:53.918444Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=4cd3bdc1 method=GET uri=/
+2026-09-13T18:34:54.158966Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=1d06ac28 method=GET uri=/api/voices
+2026-09-13T18:34:54.171882Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=b5d5de3c method=GET uri=/favicon.ico
+2026-09-13T18:34:54.654963Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=48742488 method=GET uri=/
+2026-09-13T18:34:54.764511Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=f81205f3 method=GET uri=/api/voices
+2026-09-13T18:34:54.772626Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=e573c90f method=GET uri=/favicon.ico
+2026-09-13T18:34:54.847089Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=b9e0c30a method=GET uri=/
+2026-09-13T18:34:54.953456Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=f2fc6c99 method=GET uri=/api/voices
+2026-09-13T18:34:54.969072Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=b19f257f method=GET uri=/favicon.ico
+2026-09-13T18:34:55.029098Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=f3a8a7b6 method=GET uri=/
+2026-09-13T18:34:55.133278Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=9b0e5d28 method=GET uri=/api/voices
+2026-09-13T18:34:55.146204Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=d0a10841 method=GET uri=/favicon.ico
+2026-09-13T18:34:55.197527Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=11158d29 method=GET uri=/
+2026-09-13T18:34:55.307348Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=71928173 method=GET uri=/api/voices
+2026-09-13T18:34:55.318711Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=890ad604 method=GET uri=/favicon.ico
+2026-09-13T18:34:57.188077Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=ea7b5ae8 method=GET uri=/
+2026-09-13T18:34:57.297645Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=bebdd7b1 method=GET uri=/api/voices
+2026-09-13T18:34:57.309328Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=8fe43106 method=GET uri=/favicon.ico
+2026-09-13T18:35:24.827157Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=df071773 method=GET uri=/api/voices
+2026-09-13T18:36:56.829111Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=bfe74d8c method=GET uri=/
+2026-09-13T18:36:56.954262Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=0ecbfde1 method=GET uri=/api/voices
+2026-09-13T18:36:56.978475Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=ac0e31b5 method=GET uri=/favicon.ico
+2026-09-13T18:36:57.499514Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=76a74002 method=GET uri=/
+2026-09-13T18:36:57.609193Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=f286daa9 method=GET uri=/api/voices
+2026-09-13T18:36:57.618202Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=c4059e88 method=GET uri=/favicon.ico
+2026-09-13T18:36:57.682925Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=4cf545e8 method=GET uri=/
+2026-09-13T18:36:57.790626Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=7f804d16 method=GET uri=/api/voices
+2026-09-13T18:36:57.799763Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=40bf4a05 method=GET uri=/favicon.ico
+2026-09-13T18:36:59.948481Z  WARN kokoro_api: Đã nhận tín hiệu tắt máy! Tiến hành Graceful Shutdown... category="Warning"
+2026-09-13T18:36:59.948849Z  INFO kokoro_api: Hoàn tất dọn dẹp. Tạm biệt! category="System"
+2026-09-13T18:37:04.437266Z  INFO kokoro_api: Kokoro TTS API Server đang chạy tại http://0.0.0.0:7424 category="System"
+2026-09-13T18:37:04.438612Z  INFO kokoro_api: TTS Engine: ./kokoro-rs.exe category="System"
+2026-09-13T18:37:04.439075Z  INFO kokoro_api: Endpoints: POST /api/tts | GET /api/voices | GET /api/health category="System"
+2026-09-13T18:37:04.442368Z  INFO kokoro_api::infrastructure::log_compressor: Bắt đầu quét, nén file log > 7 ngày và xóa file > 30 ngày... category="System"
+2026-09-13T18:37:07.539046Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=e61bc0c5 method=GET uri=/
+2026-09-13T18:37:07.652227Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=6d7cd19e method=GET uri=/api/voices
+2026-09-13T18:37:07.662146Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Complete" status=200 reason="OK" latency_ms=0 id=72e0c894 method=GET uri=/favicon.ico
+2026-09-13T18:37:16.066699Z  INFO HTTP: kokoro_api::routes::tts: Nhận yêu cầu TTS category="TTS" voice=diem_trinh speed=1 text_len=22 id=788fe96d method=POST uri=/api/tts
+2026-09-13T18:37:16.068446Z ERROR HTTP: kokoro_api::core::error: API Error category="Error" req_id=00RfvBi9Az8S error_detail=TtsEngineFailed("Không thể khởi chạy TTS engine: The system cannot find the file specified. (os error 2)") id=788fe96d method=POST uri=/api/tts
+2026-09-13T18:37:16.069048Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Error" status=500 reason="Internal Server Error" latency_ms=2 id=788fe96d method=POST uri=/api/tts
+2026-09-13T18:37:16.069359Z ERROR HTTP: tower_http::trace::on_failure: response failed classification=Status code: 500 Internal Server Error latency=2 ms id=788fe96d method=POST uri=/api/tts
+2026-09-13T18:37:18.907608Z  INFO HTTP: kokoro_api: Phản hồi HTTP category="Error" status=404 reason="Not Found" latency_ms=0 id=4ba94d7f method=GET uri=/.well-known/appspecific/com.chrome.devtools.json
+2026-09-13T18:40:10.711064Z  WARN kokoro_api: Đã nhận tín hiệu tắt máy! Tiến hành Graceful Shutdown... category="Warning"
+2026-09-13T18:40:10.711606Z  INFO kokoro_api: Hoàn tất dọn dẹp. Tạm biệt! category="System"
+2026-09-13T18:40:17.114421Z  INFO kokoro_api: Kokoro TTS API Server đang chạy tại http://0.0.0.0:7424 category="System"
+2026-09-13T18:40:17.115441Z  INFO kokoro_api: TTS Engine: ./kokoro-rs.exe category="System"
+2026-09-13T18:40:17.115707Z  INFO kokoro_api: Endpoints: POST /api/tts | GET /api/voices | GET /api/health category="System"
+2026-09-13T18:40:17.128275Z  INFO kokoro_api::infrastructure::log_compressor: Bắt đầu quét, nén file log > 7 ngày và xóa file > 30 ngày... category="System"
+2026-09-13T18:41:36.860848Z  WARN kokoro_api: Đã nhận tín hiệu tắt máy! Tiến hành Graceful Shutdown... category="Warning"
+2026-09-13T18:41:36.861477Z  INFO kokoro_api: Hoàn tất dọn dẹp. Tạm biệt! category="System"

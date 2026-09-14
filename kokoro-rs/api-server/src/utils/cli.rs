@@ -10,10 +10,12 @@ use sysinfo::System;
 
 const PID_FILE: &str = ".daemon.pid";
 const ENV_FILE: &str = ".env";
+const SERVICE_NAME: &str = "KokoroTTS";
 
 /****
  * handle_cli: Hàm chính điều hướng các lệnh CLI
  * Phân tích tham số để vào menu tương tác hoặc thực thi trực tiếp các lệnh.
+ * Hỗ trợ: setup, start, stop, status, logs, install, uninstall
  ****/
 pub async fn handle_cli(args: Vec<String>) {
     let command = args.get(1).map(|s| s.as_str()).unwrap_or("");
@@ -23,8 +25,25 @@ pub async fn handle_cli(args: Vec<String>) {
         "stop" | "--stop" | "-k" => stop_daemon(),
         "status" | "--status" | "-t" => check_status(),
         "logs" | "--logs" | "-l" => view_logs(),
+        "install" | "--install" | "-i" => install_service(),
+        "uninstall" | "--uninstall" | "-u" => uninstall_service(),
+        "help" | "--help" | "-h" => print_help(),
         "cli" | _ => interactive_menu(),
     }
+}
+
+fn print_help() {
+    println!("\n{}", "KOKORO TTS API SERVER".bold().cyan());
+    println!("{}", "=====================".cyan());
+    println!("  {}   | {}  Cài đặt cấu hình", "-c".green(), "setup".green());
+    println!("  {}   | {}  Khởi chạy server ẩn (daemon)", "-s".green(), "start".green());
+    println!("  {}   | {}   Dừng server ẩn", "-k".green(), "stop".green());
+    println!("  {}   | {} Kiểm tra trạng thái", "-t".green(), "status".green());
+    println!("  {}   | {}   Xem log theo thời gian thực", "-l".green(), "logs".green());
+    println!("  {}  | {} Cài đặt tự khởi chạy cùng hệ thống (trước login)", "-i".green(), "install".green());
+    println!("  {}  | {} Gỡ bỏ tự khởi chạy", "-u".green(), "uninstall".green());
+    println!("  {}  | {}   Hiển thị trợ giúp này", "-h".green(), "help".green());
+    println!("  (không tham số)     Menu tương tác");
 }
 
 /****
@@ -39,9 +58,11 @@ fn interactive_menu() {
         println!("3. Kiểm tra trạng thái (Status)");
         println!("4. Dừng Server ẩn (Stop Daemon)");
         println!("5. Xem Logs (View Logs)");
+        println!("6. Cài đặt tự khởi chạy cùng hệ thống (Install Service)");
+        println!("7. Gỡ bỏ tự khởi chạy (Uninstall Service)");
         println!("0. Thoát");
         
-        print!("Chọn một chức năng (0-5): ");
+        print!("Chọn một chức năng (0-7): ");
         io::stdout().flush().unwrap();
         
         let mut input = String::new();
@@ -53,6 +74,8 @@ fn interactive_menu() {
             "3" => check_status(),
             "4" => stop_daemon(),
             "5" => view_logs(),
+            "6" => install_service(),
+            "7" => uninstall_service(),
             "0" => {
                 println!("Đã thoát.");
                 break;
@@ -191,6 +214,9 @@ fn check_status() {
         }
     }
 
+    // Kiểm tra trạng thái auto-start
+    let autostart_status = check_autostart_installed();
+
     let mut table = comfy_table::Table::new();
     table.load_style(comfy_table::presets::UTF8_FULL.with_rounded_corners());
 
@@ -199,6 +225,7 @@ fn check_status() {
         comfy_table::Cell::new("status").fg(comfy_table::Color::Cyan),
         comfy_table::Cell::new("cpu").fg(comfy_table::Color::Cyan),
         comfy_table::Cell::new("memory").fg(comfy_table::Color::Cyan),
+        comfy_table::Cell::new("auto-start").fg(comfy_table::Color::Cyan),
     ]);
 
     let (status_text, status_color) = if is_online {
@@ -207,11 +234,18 @@ fn check_status() {
         ("offline", comfy_table::Color::Red)
     };
 
+    let (autostart_text, autostart_color) = if autostart_status {
+        ("enabled", comfy_table::Color::Green)
+    } else {
+        ("disabled", comfy_table::Color::DarkGrey)
+    };
+
     table.add_row(vec![
         comfy_table::Cell::new("kokoro-api"),
         comfy_table::Cell::new(status_text).fg(status_color).add_attribute(comfy_table::Attribute::Bold),
         comfy_table::Cell::new(format!("{:.0}%", cpu_usage)),
         comfy_table::Cell::new(format!("{:.1}mb", memory_mb)),
+        comfy_table::Cell::new(autostart_text).fg(autostart_color),
     ]);
 
     println!("{table}");
@@ -222,6 +256,219 @@ fn check_status() {
         println!("Health:     {}", format!("http://localhost:{}/api/health", current_port).cyan());
     } else {
         let _ = fs::remove_file(PID_FILE);
+    }
+}
+
+/****
+ * install_service: Đăng ký server tự khởi chạy cùng hệ thống (TRƯỚC KHI đăng nhập)
+ * - Windows: Dùng schtasks chạy dưới tài khoản SYSTEM (chạy trước login, giống Google Remote Desktop)
+ * - Linux: Sinh file systemd service với WantedBy=multi-user.target (chạy trước login)
+ ****/
+fn install_service() {
+    let exe_path = env::current_exe().expect("Không thể lấy đường dẫn thực thi");
+    let exe_str = exe_path.to_string_lossy().to_string();
+    let work_dir = exe_path.parent().unwrap().to_string_lossy().to_string();
+
+    #[cfg(windows)]
+    {
+        println!("{}", "Đang đăng ký Kokoro TTS API chạy cùng hệ thống (Windows Task Scheduler)...".cyan());
+        
+        // Dùng schtasks với /RU SYSTEM để chạy trước khi bất kỳ user nào đăng nhập
+        // /SC ONSTART = Kích hoạt khi hệ thống khởi động
+        // /RU SYSTEM = Chạy dưới tài khoản SYSTEM (không cần login)
+        // /RL HIGHEST = Quyền cao nhất
+        // /F = Force overwrite nếu đã tồn tại
+        let output = Command::new("schtasks")
+            .args(&[
+                "/Create",
+                "/SC", "ONSTART",
+                "/TN", SERVICE_NAME,
+                "/TR", &format!("\"{}\"", exe_str),
+                "/RU", "SYSTEM",
+                "/RL", "HIGHEST",
+                "/F",
+            ])
+            .output();
+
+        match output {
+            Ok(o) if o.status.success() => {
+                println!("{}", "Đã cài đặt thành công!".green().bold());
+                println!("  Task name: {}", SERVICE_NAME.cyan());
+                println!("  Exe path:  {}", exe_str.cyan());
+                println!("  Run as:    {}", "SYSTEM (chạy trước login)".yellow());
+                println!("\nServer sẽ tự khởi chạy mỗi khi bật máy, không cần đăng nhập.");
+                println!("Dùng '{} -u' để gỡ bỏ.", exe_str);
+            }
+            Ok(o) => {
+                let stderr = String::from_utf8_lossy(&o.stderr);
+                let stdout = String::from_utf8_lossy(&o.stdout);
+                eprintln!("{}", "Không thể cài đặt. Có thể cần chạy với quyền Administrator.".red());
+                eprintln!("Chi tiết: {} {}", stdout, stderr);
+            }
+            Err(e) => {
+                eprintln!("{}: {}", "Lỗi thực thi schtasks".red(), e);
+            }
+        }
+    }
+
+    #[cfg(not(windows))]
+    {
+        println!("{}", "Đang tạo systemd service cho Kokoro TTS API...".cyan());
+        
+        let service_content = format!(
+            r#"[Unit]
+Description=Kokoro TTS API Server
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart={exe}
+WorkingDirectory={work_dir}
+Restart=always
+RestartSec=5
+StandardOutput=append:{work_dir}/logs/daemon.log
+StandardError=append:{work_dir}/logs/daemon.log
+
+# Chạy với quyền root để bind cổng < 1024 nếu cần
+# Nếu muốn chạy với user khác, thay đổi dòng dưới:
+# User=kokoro
+# Group=kokoro
+
+[Install]
+# multi-user.target = chạy trước khi user đăng nhập (giống Google Remote Desktop)
+WantedBy=multi-user.target
+"#,
+            exe = exe_str,
+            work_dir = work_dir
+        );
+
+        let service_path = format!("/etc/systemd/system/{}.service", SERVICE_NAME.to_lowercase());
+        
+        // Tạo thư mục logs trước
+        let _ = Command::new("mkdir").args(&["-p", &format!("{}/logs", work_dir)]).output();
+
+        match fs::write(&service_path, &service_content) {
+            Ok(_) => {
+                // Reload systemd và enable service
+                let _ = Command::new("systemctl").args(&["daemon-reload"]).output();
+                let enable_output = Command::new("systemctl")
+                    .args(&["enable", &SERVICE_NAME.to_lowercase()])
+                    .output();
+                let start_output = Command::new("systemctl")
+                    .args(&["start", &SERVICE_NAME.to_lowercase()])
+                    .output();
+                
+                match (enable_output, start_output) {
+                    (Ok(e), Ok(s)) if e.status.success() && s.status.success() => {
+                        println!("{}", "Đã cài đặt và khởi chạy systemd service thành công!".green().bold());
+                        println!("  Service:   {}", SERVICE_NAME.to_lowercase().cyan());
+                        println!("  File:      {}", service_path.cyan());
+                        println!("  Target:    {}", "multi-user.target (chạy trước login)".yellow());
+                        println!("\nLệnh hữu ích:");
+                        println!("  sudo systemctl status {}", SERVICE_NAME.to_lowercase());
+                        println!("  sudo journalctl -u {} -f", SERVICE_NAME.to_lowercase());
+                    }
+                    _ => {
+                        println!("{}", "Đã tạo file service nhưng không thể enable/start.".yellow());
+                        println!("Thử chạy thủ công:");
+                        println!("  sudo systemctl daemon-reload");
+                        println!("  sudo systemctl enable {}", SERVICE_NAME.to_lowercase());
+                        println!("  sudo systemctl start {}", SERVICE_NAME.to_lowercase());
+                    }
+                }
+            }
+            Err(e) => {
+                if e.kind() == std::io::ErrorKind::PermissionDenied {
+                    eprintln!("{}", "Cần quyền root! Hãy chạy lại với sudo:".red());
+                    eprintln!("  sudo {} install", exe_str);
+                } else {
+                    eprintln!("{}: {}", "Lỗi tạo file service".red(), e);
+                }
+            }
+        }
+    }
+}
+
+/****
+ * uninstall_service: Gỡ bỏ server khỏi danh sách tự khởi chạy
+ * - Windows: Xóa task trong Task Scheduler
+ * - Linux: Disable và xóa file systemd service
+ ****/
+fn uninstall_service() {
+    #[cfg(windows)]
+    {
+        println!("{}", "Đang gỡ bỏ Kokoro TTS API khỏi Task Scheduler...".cyan());
+        
+        let output = Command::new("schtasks")
+            .args(&["/Delete", "/TN", SERVICE_NAME, "/F"])
+            .output();
+
+        match output {
+            Ok(o) if o.status.success() => {
+                println!("{}", "Đã gỡ bỏ thành công! Server sẽ không tự khởi chạy khi bật máy nữa.".green().bold());
+            }
+            Ok(o) => {
+                let stderr = String::from_utf8_lossy(&o.stderr);
+                if stderr.contains("does not exist") || stderr.contains("không tồn tại") {
+                    println!("{}", "Service chưa được cài đặt.".yellow());
+                } else {
+                    eprintln!("{}", "Không thể gỡ bỏ. Có thể cần chạy với quyền Administrator.".red());
+                    eprintln!("Chi tiết: {}", stderr);
+                }
+            }
+            Err(e) => {
+                eprintln!("{}: {}", "Lỗi thực thi schtasks".red(), e);
+            }
+        }
+    }
+
+    #[cfg(not(windows))]
+    {
+        println!("{}", "Đang gỡ bỏ Kokoro TTS API khỏi systemd...".cyan());
+        
+        let service_name = SERVICE_NAME.to_lowercase();
+        let service_path = format!("/etc/systemd/system/{}.service", service_name);
+        
+        // Stop -> Disable -> Remove file -> Reload
+        let _ = Command::new("systemctl").args(&["stop", &service_name]).output();
+        let _ = Command::new("systemctl").args(&["disable", &service_name]).output();
+        
+        match fs::remove_file(&service_path) {
+            Ok(_) => {
+                let _ = Command::new("systemctl").args(&["daemon-reload"]).output();
+                println!("{}", "Đã gỡ bỏ thành công! Server sẽ không tự khởi chạy khi bật máy nữa.".green().bold());
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                println!("{}", "Service chưa được cài đặt.".yellow());
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => {
+                eprintln!("{}", "Cần quyền root! Hãy chạy lại với sudo.".red());
+            }
+            Err(e) => {
+                eprintln!("{}: {}", "Lỗi xóa file service".red(), e);
+            }
+        }
+    }
+}
+
+/****
+ * check_autostart_installed: Kiểm tra xem service đã được cài đặt auto-start chưa
+ ****/
+fn check_autostart_installed() -> bool {
+    #[cfg(windows)]
+    {
+        let output = Command::new("schtasks")
+            .args(&["/Query", "/TN", SERVICE_NAME])
+            .output();
+        matches!(output, Ok(o) if o.status.success())
+    }
+    
+    #[cfg(not(windows))]
+    {
+        let service_path = format!("/etc/systemd/system/{}.service", SERVICE_NAME.to_lowercase());
+        Path::new(&service_path).exists()
     }
 }
 

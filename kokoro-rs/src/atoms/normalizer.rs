@@ -360,6 +360,21 @@ pub fn normalize(text: &str) -> String {
     t = t.replace("&", " và ");
     
     // 5. Các từ vựng tiếng Anh công nghệ phổ biến
+    t = t.replace("github", " gít hắp ");
+    t = t.replace("git", " gít ");
+    t = t.replace("terminal", " tơ mi nồ ");
+    t = t.replace("vs code", " vi ét cốt ");
+    t = t.replace("vs", " vi ét ");
+    t = t.replace("code", " cốt ");
+    t = t.replace("fork", " phóc ");
+    t = t.replace("file", " phai ");
+    t = t.replace("folder", " phôn đơ ");
+    t = t.replace("web", " goép ");
+    t = t.replace("app", " áp ");
+    t = t.replace("server", " sơ vơ ");
+    t = t.replace("api", " ây pi ai ");
+    t = t.replace("bug", " bắc ");
+    t = t.replace("error", " e rơ ");
     t = t.replace("rust", " rớt ");
     t = t.replace("mix", " mích ");
     t = t.replace("fl", " ép eo ");

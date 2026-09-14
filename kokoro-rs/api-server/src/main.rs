@@ -13,6 +13,7 @@ use std::fs;
 use std::sync::Arc;
 use tokio::signal;
 use tracing::{info, warn};
+use colored::Colorize;
 use tracing_subscriber::{
     prelude::*,
     EnvFilter,
@@ -24,12 +25,22 @@ mod helpers;
 mod routes;
 mod utils;
 
+// Thêm include file HTML vào binary (tương tự FAVICON)
 static FAVICON: &[u8] = include_bytes!("../static/favicon.ico");
+static INDEX_HTML: &str = include_str!("../index.html");
 
 async fn favicon_handler() -> impl IntoResponse {
     (
         [(header::CONTENT_TYPE, "image/x-icon")],
         FAVICON,
+    )
+}
+
+// Handler trả về giao diện HTML
+async fn index_handler() -> impl IntoResponse {
+    (
+        [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
+        INDEX_HTML,
     )
 }
 
@@ -151,6 +162,7 @@ async fn main() {
         });
 
     let app = Router::new()
+        .route("/", axum::routing::get(index_handler))
         .route("/favicon.ico", axum::routing::get(favicon_handler))
         .nest("/api", crate::routes::tts::router())
         .layer(cors_layer)
@@ -158,7 +170,20 @@ async fn main() {
         .with_state(app_state.clone());
 
     let _addr = format!("0.0.0.0:{}", port_str);
-    let listener = tokio::net::TcpListener::bind(&_addr).await.unwrap();
+    let listener = match tokio::net::TcpListener::bind(&_addr).await {
+        Ok(l) => l,
+        Err(e) => {
+            if e.kind() == std::io::ErrorKind::AddrInUse {
+                let msg = format!("Cổng {} đã bị chiếm bởi tiến trình khác!", port_str);
+                eprintln!("{}", msg.as_str().red().bold());
+                eprintln!("Gợi ý: Dùng lệnh '{} -k' để dừng server cũ, hoặc đổi PORT trong file .env", 
+                    std::env::current_exe().unwrap_or_default().display());
+            } else {
+                eprintln!("Không thể mở cổng {}: {}", port_str, e);
+            }
+            std::process::exit(1);
+        }
+    };
     
     // Khởi động các task ngầm
     crate::infrastructure::log_compressor::start_log_compressor_task().await;
