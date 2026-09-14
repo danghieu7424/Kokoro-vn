@@ -160,6 +160,13 @@ fn process_voice(args: &Args) -> anyhow::Result<()> {
 }
 
 fn main() -> anyhow::Result<()> {
+    // Ưu tiên load ONNX DLL từ thư mục lib/ nếu có (giúp thư mục gốc gọn gàng)
+    if std::path::Path::new("lib/onnxruntime.dll").exists() {
+        std::env::set_var("ORT_DYLIB_PATH", "lib/onnxruntime.dll");
+    } else if std::path::Path::new("bin/onnxruntime.dll").exists() {
+        std::env::set_var("ORT_DYLIB_PATH", "bin/onnxruntime.dll");
+    }
+
     let args = Args::parse();
     
     let _ = &*TOKENIZER;

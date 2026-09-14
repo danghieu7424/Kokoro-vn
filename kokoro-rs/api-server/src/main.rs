@@ -46,6 +46,14 @@ async fn index_handler() -> impl IntoResponse {
 
 #[tokio::main]
 async fn main() {
+    // 1. Tự động chuyển Working Directory về thư mục chứa file .exe
+    // Giúp server luôn tìm thấy .env, kokoro-rs.exe và model dù khởi chạy từ Task Scheduler (SYSTEM)
+    if let Ok(exe_path) = std::env::current_exe() {
+        if let Some(exe_dir) = exe_path.parent() {
+            let _ = std::env::set_current_dir(exe_dir);
+        }
+    }
+
     dotenv().ok();
 
     let args: Vec<String> = std::env::args().collect();

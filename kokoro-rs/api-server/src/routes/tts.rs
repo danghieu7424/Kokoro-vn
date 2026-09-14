@@ -129,7 +129,12 @@ async fn handle_tts(
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(AppError::TtsEngineFailed(format!("TTS engine thất bại: {}", stderr)));
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let status = output.status.code().unwrap_or(-1);
+        return Err(AppError::TtsEngineFailed(format!(
+            "Mã lỗi: {}. Chi tiết lỗi (stderr): {}. Output (stdout): {}", 
+            status, stderr, stdout
+        )));
     }
 
     let elapsed = start.elapsed();
