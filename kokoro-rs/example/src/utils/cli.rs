@@ -10,10 +10,12 @@ use sysinfo::System;
 
 const PID_FILE: &str = ".daemon.pid";
 const ENV_FILE: &str = ".env";
+const SERVICE_NAME: &str = "MyAxumService";
 
 /****
  * handle_cli: Hàm chính điều hướng các lệnh CLI
  * Phân tích tham số để vào menu tương tác hoặc thực thi trực tiếp các lệnh.
+ * Hỗ trợ: setup, start, stop, status, logs, install, uninstall
  ****/
 pub async fn handle_cli(args: Vec<String>) {
     let command = args.get(1).map(|s| s.as_str()).unwrap_or("");
@@ -23,8 +25,25 @@ pub async fn handle_cli(args: Vec<String>) {
         "stop" | "--stop" | "-k" => stop_daemon(),
         "status" | "--status" | "-t" => check_status(),
         "logs" | "--logs" | "-l" => view_logs(),
+        "install" | "--install" | "-i" => install_service(),
+        "uninstall" | "--uninstall" | "-u" => uninstall_service(),
+        "help" | "--help" | "-h" => print_help(),
         "cli" | _ => interactive_menu(),
     }
+}
+
+fn print_help() {
+    println!("\n{}", "Axum Server".bold().cyan());
+    println!("{}", "=====================".cyan());
+    println!("  {}   | {}  Cài đặt cấu hình", "-c".green(), "setup".green());
+    println!("  {}   | {}  Khởi chạy server ẩn (daemon)", "-s".green(), "start".green());
+    println!("  {}   | {}   Dừng server ẩn", "-k".green(), "stop".green());
+    println!("  {}   | {} Kiểm tra trạng thái", "-t".green(), "status".green());
+    println!("  {}   | {}   Xem log theo thời gian thực", "-l".green(), "logs".green());
+    println!("  {}  | {} Cài đặt tự khởi chạy cùng hệ thống (trước login)", "-i".green(), "install".green());
+    println!("  {}  | {} Gỡ bỏ tự khởi chạy", "-u".green(), "uninstall".green());
+    println!("  {}  | {}   Hiển thị trợ giúp này", "-h".green(), "help".green());
+    println!("  (không tham số)     Menu tương tác");
 }
 
 /****
@@ -33,15 +52,17 @@ pub async fn handle_cli(args: Vec<String>) {
  ****/
 fn interactive_menu() {
     loop {
-        println!("\n{}", "=== WEB BROWSE FILES CLI ===".bold().cyan());
+        println!("\n{}", "=== Axum Server CLI ===".bold().cyan());
         println!("1. Cài đặt cấu hình (Setup)");
         println!("2. Khởi chạy Server ẩn (Start Daemon)");
         println!("3. Kiểm tra trạng thái (Status)");
         println!("4. Dừng Server ẩn (Stop Daemon)");
         println!("5. Xem Logs (View Logs)");
+        println!("6. Cài đặt tự khởi chạy cùng hệ thống (Install Service)");
+        println!("7. Gỡ bỏ tự khởi chạy (Uninstall Service)");
         println!("0. Thoát");
         
-        print!("Chọn một chức năng (0-5): ");
+        print!("Chọn một chức năng (0-7): ");
         io::stdout().flush().unwrap();
         
         let mut input = String::new();
@@ -53,6 +74,8 @@ fn interactive_menu() {
             "3" => check_status(),
             "4" => stop_daemon(),
             "5" => view_logs(),
+            "6" => install_service(),
+            "7" => uninstall_service(),
             "0" => {
                 println!("Đã thoát.");
                 break;
@@ -67,21 +90,16 @@ fn interactive_menu() {
  * Đọc file .env, hiển thị giá trị hiện tại, cho phép thay đổi và ghi đè.
  ****/
 fn setup_wizard() {
-    println!("\n{}", "--- Cài đặt cấu hình (Để trống nếu muốn giữ giá trị hiện tại) ---".yellow());
+    println!("\n{}", "--- Cài đặt cấu hình Kokoro TTS API (Để trống = giữ nguyên) ---".yellow());
     
-    // Tải cấu hình hiện tại để làm giá trị mặc định
     let current_port = std::env::var("PORT").unwrap_or_else(|_| "7424".to_string());
-    let current_path = std::env::var("STORAGE_PATH").unwrap_or_else(|_| "D:/WBF".to_string());
-    let current_limit = std::env::var("STORAGE_LIMIT_GB").unwrap_or_else(|_| "20".to_string());
+    let current_engine = std::env::var("TTS_ENGINE_PATH").unwrap_or_else(|_| "./kokoro-rs.exe".to_string());
     
     let port = prompt(&format!("Cổng (PORT) [{}]: ", current_port), &current_port);
-    let path = prompt(&format!("Đường dẫn (STORAGE_PATH) [{}]: ", current_path), &current_path);
-    let limit = prompt(&format!("Dung lượng giới hạn (STORAGE_LIMIT_GB) [{}]: ", current_limit), &current_limit);
+    let engine = prompt(&format!("Đường dẫn TTS Engine [{}]: ", current_engine), &current_engine);
     
-    // Ghi đè vào file .env
     update_env_file("PORT", &port);
-    update_env_file("STORAGE_PATH", &format!("\"{}\"", path.trim_matches('"')));
-    update_env_file("STORAGE_LIMIT_GB", &format!("\"{}\"", limit.trim_matches('"')));
+    update_env_file("TTS_ENGINE_PATH", &format!("\"{}\"", engine.trim_matches('"')));
     
     println!("{}", "Đã lưu cấu hình thành công!".green());
 }
@@ -110,7 +128,7 @@ fn start_daemon() {
 
     #[cfg(windows)]
     let child_res = {
-        // Cờ CREATE_NO_WINDOW = 0x08000000 để tiến trình không mở cửa sổ cmd mới
+        // Cờ CREATE_NO_WINDOW = 0x08000000
         Command::new(&exe_path)
             .stdout(std::process::Stdio::from(out_file))
             .stderr(std::process::Stdio::from(err_file))
@@ -130,17 +148,7 @@ fn start_daemon() {
             if let Err(e) = fs::write(PID_FILE, pid.to_string()) {
                 println!("{}: {}", "Lỗi khi lưu PID".red(), e);
             } else {
-                println!("{} (PID: {})", "Server đã được khởi chạy trong nền thành công!".green(), pid);
-                
-                #[cfg(windows)]
-                {
-                    let reg_cmd = format!("\"{}\" -s", exe_path.display());
-                    let _ = Command::new("reg")
-                        .args(&["add", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", "/v", "WebBrowseFilesDaemon", "/t", "REG_SZ", "/d", &reg_cmd, "/f"])
-                        .creation_flags(0x08000000)
-                        .status();
-                    println!("{}", "Đã thiết lập tự động khởi chạy cùng Windows!".cyan());
-                }
+                println!("{} (PID: {})", "Axum Server đã khởi chạy trong nền!".green(), pid);
             }
         }
         Err(e) => {
@@ -151,7 +159,6 @@ fn start_daemon() {
 
 /****
  * stop_daemon: Tắt server đang chạy ẩn
- * Đọc PID và gửi lệnh Taskkill (trên Windows).
  ****/
 fn stop_daemon() {
     if let Ok(pid_str) = fs::read_to_string(PID_FILE) {
@@ -160,7 +167,6 @@ fn stop_daemon() {
             sys.refresh_all();
             
             if sys.process(sysinfo::Pid::from_u32(pid)).is_some() {
-                // Sử dụng lệnh taskkill trên Windows để ép buộc tắt tiến trình theo logic nghiệp vụ
                 #[cfg(windows)]
                 let _ = Command::new("taskkill")
                     .args(&["/F", "/PID", &pid.to_string()])
@@ -171,7 +177,7 @@ fn stop_daemon() {
                     .args(&["-9", &pid.to_string()])
                     .output();
                     
-                println!("{}", "Đã dừng Server ẩn thành công!".green());
+                println!("{}", "Đã dừng Axum Server!".green());
             } else {
                 println!("{}", "Server không hoạt động, tiến trình có thể đã tắt từ trước.".yellow());
             }
@@ -181,22 +187,11 @@ fn stop_daemon() {
         return;
     }
 
-    // Dọn dẹp file PID thừa
     let _ = fs::remove_file(PID_FILE);
-
-    #[cfg(windows)]
-    {
-        let _ = Command::new("reg")
-            .args(&["delete", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", "/v", "WebBrowseFilesDaemon", "/f"])
-            .creation_flags(0x08000000)
-            .status();
-        println!("{}", "Đã vô hiệu hóa tính năng tự động khởi chạy cùng hệ thống!".cyan());
-    }
 }
 
 /****
  * check_status: Kiểm tra trạng thái server ẩn
- * Nếu có PID file và PID đó đang tồn tại trong hệ thống thì là đang chạy.
  ****/
 fn check_status() {
     let pid_str = fs::read_to_string(PID_FILE).unwrap_or_default();
@@ -219,15 +214,18 @@ fn check_status() {
         }
     }
 
+    // Kiểm tra trạng thái auto-start
+    let autostart_status = check_autostart_installed();
+
     let mut table = comfy_table::Table::new();
     table.load_style(comfy_table::presets::UTF8_FULL.with_rounded_corners());
 
     table.set_header(vec![
-        comfy_table::Cell::new("mode").fg(comfy_table::Color::Cyan),
-        comfy_table::Cell::new("↺").fg(comfy_table::Color::Cyan),
+        comfy_table::Cell::new("service").fg(comfy_table::Color::Cyan),
         comfy_table::Cell::new("status").fg(comfy_table::Color::Cyan),
         comfy_table::Cell::new("cpu").fg(comfy_table::Color::Cyan),
         comfy_table::Cell::new("memory").fg(comfy_table::Color::Cyan),
+        comfy_table::Cell::new("auto-start").fg(comfy_table::Color::Cyan),
     ]);
 
     let (status_text, status_color) = if is_online {
@@ -236,27 +234,244 @@ fn check_status() {
         ("offline", comfy_table::Color::Red)
     };
 
+    let (autostart_text, autostart_color) = if autostart_status {
+        ("enabled", comfy_table::Color::Green)
+    } else {
+        ("disabled", comfy_table::Color::DarkGrey)
+    };
+
     table.add_row(vec![
-        comfy_table::Cell::new("fork"),
-        comfy_table::Cell::new("0"),
+        comfy_table::Cell::new("kokoro-api"),
         comfy_table::Cell::new(status_text).fg(status_color).add_attribute(comfy_table::Attribute::Bold),
         comfy_table::Cell::new(format!("{:.0}%", cpu_usage)),
         comfy_table::Cell::new(format!("{:.1}mb", memory_mb)),
+        comfy_table::Cell::new(autostart_text).fg(autostart_color),
     ]);
 
     println!("{table}");
 
     if is_online {
         let current_port = std::env::var("PORT").unwrap_or_else(|_| "7424".to_string());
-        println!("Server đang lắng nghe tại: {}", format!("http://localhost:{}", current_port).cyan());
+        println!("API Server: {}", format!("http://localhost:{}", current_port).cyan());
+        println!("Health:     {}", format!("http://localhost:{}/api/health", current_port).cyan());
     } else {
         let _ = fs::remove_file(PID_FILE);
     }
 }
 
 /****
- * is_daemon_running: Helper function kiểm tra server ẩn có thực sự đang chạy không
+ * install_service: Đăng ký server tự khởi chạy cùng hệ thống (TRƯỚC KHI đăng nhập)
+ * - Windows: Dùng schtasks chạy dưới tài khoản SYSTEM (chạy trước login, giống Google Remote Desktop)
+ * - Linux: Sinh file systemd service với WantedBy=multi-user.target (chạy trước login)
  ****/
+fn install_service() {
+    let exe_path = env::current_exe().expect("Không thể lấy đường dẫn thực thi");
+    let exe_str = exe_path.to_string_lossy().to_string();
+    let work_dir = exe_path.parent().unwrap().to_string_lossy().to_string();
+
+    #[cfg(windows)]
+    {
+        println!("{}", "Đang đăng ký Kokoro TTS API chạy cùng hệ thống (Windows Task Scheduler)...".cyan());
+        
+        // Dùng schtasks với /RU SYSTEM để chạy trước khi bất kỳ user nào đăng nhập
+        // /SC ONSTART = Kích hoạt khi hệ thống khởi động
+        // /RU SYSTEM = Chạy dưới tài khoản SYSTEM (không cần login)
+        // /RL HIGHEST = Quyền cao nhất
+        // /F = Force overwrite nếu đã tồn tại
+        let output = Command::new("schtasks")
+            .args(&[
+                "/Create",
+                "/SC", "ONSTART",
+                "/TN", SERVICE_NAME,
+                "/TR", &format!("\"{}\"", exe_str),
+                "/RU", "SYSTEM",
+                "/RL", "HIGHEST",
+                "/F",
+            ])
+            .output();
+
+        match output {
+            Ok(o) if o.status.success() => {
+                println!("{}", "Đã cài đặt thành công!".green().bold());
+                println!("  Task name: {}", SERVICE_NAME.cyan());
+                println!("  Exe path:  {}", exe_str.cyan());
+                println!("  Run as:    {}", "SYSTEM (chạy trước login)".yellow());
+                println!("\nServer sẽ tự khởi chạy mỗi khi bật máy, không cần đăng nhập.");
+                println!("Dùng '{} -u' để gỡ bỏ.", exe_str);
+            }
+            Ok(o) => {
+                let stderr = String::from_utf8_lossy(&o.stderr);
+                let stdout = String::from_utf8_lossy(&o.stdout);
+                eprintln!("{}", "Không thể cài đặt. Có thể cần chạy với quyền Administrator.".red());
+                eprintln!("Chi tiết: {} {}", stdout, stderr);
+            }
+            Err(e) => {
+                eprintln!("{}: {}", "Lỗi thực thi schtasks".red(), e);
+            }
+        }
+    }
+
+    #[cfg(not(windows))]
+    {
+        println!("{}", "Đang tạo systemd service cho Kokoro TTS API...".cyan());
+        
+        let service_content = format!(
+            r#"[Unit]
+Description=Axum Server
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart={exe}
+WorkingDirectory={work_dir}
+Restart=always
+RestartSec=5
+StandardOutput=append:{work_dir}/logs/daemon.log
+StandardError=append:{work_dir}/logs/daemon.log
+
+# Chạy với quyền root để bind cổng < 1024 nếu cần
+# Nếu muốn chạy với user khác, thay đổi dòng dưới:
+# User=kokoro
+# Group=kokoro
+
+[Install]
+# multi-user.target = chạy trước khi user đăng nhập (giống Google Remote Desktop)
+WantedBy=multi-user.target
+"#,
+            exe = exe_str,
+            work_dir = work_dir
+        );
+
+        let service_path = format!("/etc/systemd/system/{}.service", SERVICE_NAME.to_lowercase());
+        
+        // Tạo thư mục logs trước
+        let _ = Command::new("mkdir").args(&["-p", &format!("{}/logs", work_dir)]).output();
+
+        match fs::write(&service_path, &service_content) {
+            Ok(_) => {
+                // Reload systemd và enable service
+                let _ = Command::new("systemctl").args(&["daemon-reload"]).output();
+                let enable_output = Command::new("systemctl")
+                    .args(&["enable", &SERVICE_NAME.to_lowercase()])
+                    .output();
+                let start_output = Command::new("systemctl")
+                    .args(&["start", &SERVICE_NAME.to_lowercase()])
+                    .output();
+                
+                match (enable_output, start_output) {
+                    (Ok(e), Ok(s)) if e.status.success() && s.status.success() => {
+                        println!("{}", "Đã cài đặt và khởi chạy systemd service thành công!".green().bold());
+                        println!("  Service:   {}", SERVICE_NAME.to_lowercase().cyan());
+                        println!("  File:      {}", service_path.cyan());
+                        println!("  Target:    {}", "multi-user.target (chạy trước login)".yellow());
+                        println!("\nLệnh hữu ích:");
+                        println!("  sudo systemctl status {}", SERVICE_NAME.to_lowercase());
+                        println!("  sudo journalctl -u {} -f", SERVICE_NAME.to_lowercase());
+                    }
+                    _ => {
+                        println!("{}", "Đã tạo file service nhưng không thể enable/start.".yellow());
+                        println!("Thử chạy thủ công:");
+                        println!("  sudo systemctl daemon-reload");
+                        println!("  sudo systemctl enable {}", SERVICE_NAME.to_lowercase());
+                        println!("  sudo systemctl start {}", SERVICE_NAME.to_lowercase());
+                    }
+                }
+            }
+            Err(e) => {
+                if e.kind() == std::io::ErrorKind::PermissionDenied {
+                    eprintln!("{}", "Cần quyền root! Hãy chạy lại với sudo:".red());
+                    eprintln!("  sudo {} install", exe_str);
+                } else {
+                    eprintln!("{}: {}", "Lỗi tạo file service".red(), e);
+                }
+            }
+        }
+    }
+}
+
+/****
+ * uninstall_service: Gỡ bỏ server khỏi danh sách tự khởi chạy
+ * - Windows: Xóa task trong Task Scheduler
+ * - Linux: Disable và xóa file systemd service
+ ****/
+fn uninstall_service() {
+    #[cfg(windows)]
+    {
+        println!("{}", "Đang gỡ bỏ Kokoro TTS API khỏi Task Scheduler...".cyan());
+        
+        let output = Command::new("schtasks")
+            .args(&["/Delete", "/TN", SERVICE_NAME, "/F"])
+            .output();
+
+        match output {
+            Ok(o) if o.status.success() => {
+                println!("{}", "Đã gỡ bỏ thành công! Server sẽ không tự khởi chạy khi bật máy nữa.".green().bold());
+            }
+            Ok(o) => {
+                let stderr = String::from_utf8_lossy(&o.stderr);
+                if stderr.contains("does not exist") || stderr.contains("không tồn tại") {
+                    println!("{}", "Service chưa được cài đặt.".yellow());
+                } else {
+                    eprintln!("{}", "Không thể gỡ bỏ. Có thể cần chạy với quyền Administrator.".red());
+                    eprintln!("Chi tiết: {}", stderr);
+                }
+            }
+            Err(e) => {
+                eprintln!("{}: {}", "Lỗi thực thi schtasks".red(), e);
+            }
+        }
+    }
+
+    #[cfg(not(windows))]
+    {
+        println!("{}", "Đang gỡ bỏ Kokoro TTS API khỏi systemd...".cyan());
+        
+        let service_name = SERVICE_NAME.to_lowercase();
+        let service_path = format!("/etc/systemd/system/{}.service", service_name);
+        
+        // Stop -> Disable -> Remove file -> Reload
+        let _ = Command::new("systemctl").args(&["stop", &service_name]).output();
+        let _ = Command::new("systemctl").args(&["disable", &service_name]).output();
+        
+        match fs::remove_file(&service_path) {
+            Ok(_) => {
+                let _ = Command::new("systemctl").args(&["daemon-reload"]).output();
+                println!("{}", "Đã gỡ bỏ thành công! Server sẽ không tự khởi chạy khi bật máy nữa.".green().bold());
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                println!("{}", "Service chưa được cài đặt.".yellow());
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => {
+                eprintln!("{}", "Cần quyền root! Hãy chạy lại với sudo.".red());
+            }
+            Err(e) => {
+                eprintln!("{}: {}", "Lỗi xóa file service".red(), e);
+            }
+        }
+    }
+}
+
+/****
+ * check_autostart_installed: Kiểm tra xem service đã được cài đặt auto-start chưa
+ ****/
+fn check_autostart_installed() -> bool {
+    #[cfg(windows)]
+    {
+        let output = Command::new("schtasks")
+            .args(&["/Query", "/TN", SERVICE_NAME])
+            .output();
+        matches!(output, Ok(o) if o.status.success())
+    }
+    
+    #[cfg(not(windows))]
+    {
+        let service_path = format!("/etc/systemd/system/{}.service", SERVICE_NAME.to_lowercase());
+        Path::new(&service_path).exists()
+    }
+}
+
 fn is_daemon_running() -> bool {
     if let Ok(pid_str) = fs::read_to_string(PID_FILE) {
         if let Ok(pid) = pid_str.trim().parse::<u32>() {
@@ -268,9 +483,6 @@ fn is_daemon_running() -> bool {
     false
 }
 
-/****
- * prompt: Helper function nhập dữ liệu tương tác
- ****/
 fn prompt(message: &str, default: &str) -> String {
     print!("{}", message.cyan());
     io::stdout().flush().unwrap();
@@ -284,10 +496,6 @@ fn prompt(message: &str, default: &str) -> String {
     }
 }
 
-/****
- * update_env_file: Helper function cập nhật giá trị trong file .env
- * Tìm kiếm khóa (Key) hiện tại, nếu có thì thay thế, nếu không có thì thêm mới.
- ****/
 fn update_env_file(key: &str, value: &str) {
     let path = Path::new(ENV_FILE);
     let mut content = String::new();
@@ -317,10 +525,6 @@ fn update_env_file(key: &str, value: &str) {
     }
 }
 
-/****
- * view_logs: Hiển thị log của server
- * Mở file logs/daemon.log (chứa output màu của Terminal) và tail
- ****/
 fn view_logs() {
     let log_file = Path::new("logs/daemon.log");
     if !log_file.exists() {
@@ -331,23 +535,19 @@ fn view_logs() {
     println!("Đang theo dõi log: {}", log_file.display().to_string().yellow());
     println!("{}", "Nhấn Ctrl+C để thoát chế độ xem log.\n".cyan());
 
-    // Đọc file native bằng Rust để giữ nguyên màu sắc (ANSI) và chống lỗi font (UTF-8)
     if let Ok(mut file) = fs::File::open(log_file) {
         use std::io::{Read, Seek, SeekFrom};
         let mut buffer = String::new();
         
-        // Đọc nội dung hiện có (tối đa khoảng 10KB cuối để không bị ngợp)
         let metadata = file.metadata().unwrap();
         let file_size = metadata.len();
         let start_pos = if file_size > 10240 { file_size - 10240 } else { 0 };
         file.seek(SeekFrom::Start(start_pos)).unwrap_or_default();
         
         if let Ok(_) = file.read_to_string(&mut buffer) {
-            // In ra nội dung cũ
             print!("{}", buffer);
         }
 
-        // Vòng lặp tail
         loop {
             let mut chunk = String::new();
             match file.read_to_string(&mut chunk) {
@@ -357,7 +557,6 @@ fn view_logs() {
                     std::io::stdout().flush().unwrap_or_default();
                 }
                 Ok(_) => {
-                    // Không có dữ liệu mới, ngủ một chút
                     std::thread::sleep(std::time::Duration::from_millis(200));
                 }
                 Err(_) => {

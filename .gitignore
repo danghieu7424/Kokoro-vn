@@ -34,3 +34,4 @@ docs/superpowers/
 
 kokoro-rs/target
 kokoro-rs/api-server/target
+kokoro-rs/init-template
