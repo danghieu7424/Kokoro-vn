@@ -159,6 +159,35 @@ pub fn normalize(text: &str) -> String {
     
     t = t.to_lowercase();
     
+    // Xử lý từ viết tắt thông dụng (sau khi đã in thường)
+    t = t.replace("v.v.", " vân vân ").replace("v.v", " vân vân ");
+    t = t.replace("vd:", " ví dụ: ").replace("vd :", " ví dụ: ");
+    
+    let abbreviations = vec![
+        ("vn", "việt nam"),
+        ("tnhh", "trách nhiệm hữu hạn"),
+        ("nxb", "nhà xuất bản"),
+        ("ths", "thạc sĩ"),
+        ("ts", "tiến sĩ"),
+        ("pgs", "phó giáo sư"),
+        ("gs", "giáo sư"),
+        ("bs", "bác sĩ"),
+        ("thpt", "trung học phổ thông"),
+        ("thcs", "trung học cơ sở"),
+        ("ubnd", "ủy ban nhân dân"), // Bắt dự phòng dạng viết thường
+        ("hđnd", "hội đồng nhân dân"),
+        ("bhxh", "bảo hiểm xã hội"),
+        ("bhyt", "bảo hiểm y tế"),
+        ("khtn", "khoa học tự nhiên"),
+        ("xhcn", "xã hội chủ nghĩa"),
+        ("tw", "trung ương"),
+    ];
+    for (sym, text) in abbreviations {
+        // Có thể có dấu chấm theo sau các học hàm/học vị (VD: ts. pgs.)
+        let re = Regex::new(&format!(r"\b{}\b\.?", sym)).unwrap();
+        t = re.replace_all(&t, format!(" {} ", text)).into_owned();
+    }
+    
     // 0. Chuẩn hóa vị trí dấu thanh (Kiểu cũ -> Kiểu mới để map đúng với từ điển sinh ra)
     // Vần "oa"
     t = t.replace("óa", "oá").replace("òa", "oà").replace("ỏa", "oả").replace("õa", "oã").replace("ọa", "oạ");
