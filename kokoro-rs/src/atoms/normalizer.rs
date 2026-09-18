@@ -113,6 +113,16 @@ fn read_number(num_str: &str) -> String {
     num_str.to_string()
 }
 
+fn spell_letters(s: &str) -> String {
+    s.chars().map(|c| match c {
+        'a' => "a ", 'b' => "bê ", 'c' => "xê ", 'd' => "dê ", 'e' => "e ", 'f' => "ép ",
+        'g' => "gờ ", 'h' => "hát ", 'i' => "i ", 'j' => "gi ", 'k' => "ca ", 'l' => "e lờ ",
+        'm' => "em mờ ", 'n' => "en nờ ", 'o' => "o ", 'p' => "pê ", 'q' => "quy ", 'r' => "e rờ ",
+        's' => "ét xì ", 't' => "tê ", 'u' => "u ", 'v' => "vê ", 'w' => "vê kép ", 'x' => "ích xì ",
+        'y' => "y dài ", 'z' => "zét ", _ => "",
+    }).collect::<String>().trim().to_string()
+}
+
 pub fn normalize(text: &str) -> String {
     // Xử lý các từ viết tắt nhạy cảm chữ hoa chữ thường TRƯỚC KHI to_lowercase
     let mut t = text.replace("pH", " pê hát ").replace("PH", " pê hát ");
@@ -394,6 +404,14 @@ pub fn normalize(text: &str) -> String {
     t = t.replace("rap", " ráp ");
     t = t.replace("edm", " i đi em ");
     t = t.replace("dj", " đi dây ");
+    
+    // Đọc các chữ cái đứng riêng lẻ và một số cụm từ viết tắt phổ biến
+    t = Regex::new(r"\b([a-z])\b").unwrap().replace_all(&t, |caps: &Captures| { spell_letters(&caps[1]) }).into_owned();
+    t = Regex::new(r"\b([b-df-hj-np-tv-z]{2,})\b").unwrap().replace_all(&t, |caps: &Captures| { spell_letters(&caps[1]) }).into_owned();
+    let acros = ["abc", "abcd", "xyz"];
+    for a in acros {
+        t = Regex::new(&format!(r"\b{}\b", a)).unwrap().replace_all(&t, spell_letters(a)).into_owned();
+    }
     
     // 7. Quy đổi số thành chữ
     let t = NUM_RE.replace_all(&t, |caps: &Captures| {
