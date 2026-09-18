@@ -1,4 +1,4 @@
-/****
+﻿/****
  * [MODULE]: normalizer
  * Chức năng: Text Normalization cho Tiếng Việt.
  * Xử lý số đếm, ký tự đặc biệt (%, $, &) và từ mượn tiếng Anh thông dụng
@@ -447,5 +447,9 @@ pub fn normalize(text: &str) -> String {
         read_number(&caps[1])
     });
     
-    t.into_owned()
+    let mut final_text = t.into_owned().trim().to_string();
+    if !final_text.ends_with('.') && !final_text.ends_with('!') && !final_text.ends_with('?') {
+        final_text.push('.');
+    }
+    final_text
 }

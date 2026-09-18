@@ -1,10 +1,34 @@
-import json
+﻿import json
 
 with open("kokoro-rs/vi_syllables.json", "r", encoding="utf-8") as f:
     data = json.load(f)
 
 # Vá lỗi các từ unaccented bị lẫn phát âm tiếng Anh
 overrides = {
+        "khuyết": "xwˈiɛ↗t",
+    "khuyệt": "xwˈiɛʔ↓t",
+    "quyết": "kwˈiɛ↗t",
+    "quyệt": "kwˈiɛʔ↓t",
+    "thuyết": "θwˈiɛ↗t",
+    "thuyệt": "θwˈiɛʔ↓t",
+    "tuyết": "twˈiɛ↗t",
+    "tuyệt": "twˈiɛʔ↓t",
+    "duyệt": "zwˈiɛʔ↓t",
+    "huyết": "hwˈiɛ↗t",
+    "huyệt": "hwˈiɛʔ↓t",
+    "truyết": "ʈʂwˈiɛ↗t",
+    "truyệt": "ʈʂwˈiɛʔ↓t",
+    "nguyệt": "ŋwˈiɛʔ↓t",
+    "chuyết": "ʧwˈiɛ↗t",
+        "như": "ɲˈɨ",
+    "nhưng": "ɲˈɨŋ",
+    "là": "lˈaː↘",
+    "thì": "θˈi↘",
+    "với": "vˈəː↗j",
+    "bởi": "bˈəː↓j",
+    "chẳng": "ʧˈa↓ŋ",
+    "mỗi": "mˈoʔ↗j",
+    "khoảng": "xwˈaː↓ŋ",
     "do": "zˈɔ",
     "to": "tˈɔ",
     "so": "ʂˈɔ",
