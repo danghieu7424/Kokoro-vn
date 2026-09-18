@@ -379,7 +379,23 @@ pub fn normalize(text: &str) -> String {
     t = t.replace("mix", " mích ");
     t = t.replace("fl", " ép eo ");
     
-    // 6. Quy đổi số thành chữ
+    // 6. Các từ vựng thể loại âm nhạc
+    t = t.replace("chill house", " chiu hao ");
+    t = t.replace("house lak", " hao lắc ");
+    t = t.replace("house", " hao ");
+    t = t.replace("pop balat", " póp ba lát ");
+    t = t.replace("ballad", " ba lát ");
+    t = t.replace("pop", " póp ");
+    t = t.replace("drill", " đờ riu ");
+    t = t.replace("lofi", " lô phai ");
+    t = t.replace("remix", " ri mích ");
+    t = t.replace("trap", " tráp ");
+    t = t.replace("hiphop", " híp hóp ");
+    t = t.replace("rap", " ráp ");
+    t = t.replace("edm", " i đi em ");
+    t = t.replace("dj", " đi dây ");
+    
+    // 7. Quy đổi số thành chữ
     let t = NUM_RE.replace_all(&t, |caps: &Captures| {
         read_number(&caps[1])
     });
