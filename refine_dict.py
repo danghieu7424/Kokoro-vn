@@ -3,6 +3,25 @@ import json
 with open("kokoro-rs/vi_syllables.json", "r", encoding="utf-8") as f:
     data = json.load(f)
 
+# Vá lỗi các từ unaccented bị lẫn phát âm tiếng Anh
+overrides = {
+    "do": "zˈɔ",
+    "to": "tˈɔ",
+    "so": "ʂˈɔ",
+    "lo": "lˈɔ",
+    "no": "nˈɔ",
+    "me": "mˈɛ",
+    "he": "hˈɛ",
+    "be": "bˈɛ",
+    "hi": "hˈi",
+    "am": "ˈam",
+    "in": "ˈin",
+    "on": "ˈɔn",
+    "an": "ˈan",
+    "it": "ˈit"
+}
+data.update(overrides)
+
 refined = {}
 for k, v in data.items():
     # Fix 1: Replace 'y' with 'ɨ' (Kokoro uses ɨ for ư/ươ)
